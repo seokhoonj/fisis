@@ -24,23 +24,25 @@
 
 **DART와 함께** — 재무제표는 DART(전자공시)가 더 충실(주석·XBRL·연결/별도)하고, fisis는 같은
 **감독 별도** 기준으로 재무제표와 감독지표를 한 소스에서 봅니다. 재무제표성 지표만 DART와
-겹치고(삼성생명 별도 자산총계는 두 소스가 일치), 나머지 감독지표는 fisis 전용입니다.
+겹치고(삼성생명 별도 자산총계는 두 소스가 일치), 나머지 감독지표는 fisis 전용입니다. DART 숫자와 교차 검증하려면 [opendart-client](https://github.com/seokhoonj/opendart-client)를 함께 쓰세요.
 
 | group | indicator | dart | fisis |
 |---|---|---|---|
 | bank | `balance_sheet` · `income_statement` | ✅ | ✅ |
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
-| life · nonlife | `solvency` (RBC/K-ICS) · `persistency` · `efficiency` · `premium_income` | ❌ | ✅ |
-| card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
+| card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
+| life · nonlife | `solvency` (RBC/K-ICS) · `persistency` · `efficiency` · `premium_income` (life) | ❌ | ✅ |
 
-자주 쓰는 지표는 **접근자**(`f.life.company("삼성생명").persistency(start_month="202312",
+자주 쓰는 지표는 **접근자**(`fisis.life.company("삼성생명").persistency(start_month="202312",
 end_month="202312")`)로 바로 꺼내고, 그 밖의 통계는 통계표 코드로 조회합니다.
 
 ## 1. 설치
 
 ```bash
-pip install fisis
+pip install fisis          # 코어 (의존성은 httpx 하나)
+pip install fisis[pandas]  # + Table.to_pandas()
+pip install fisis[polars]  # + Table.to_polars()
 ```
 
 이 패키지는 FISIS API 키가 필요합니다. <https://fisis.fss.or.kr/> 의 오픈API 신청에서
@@ -51,7 +53,7 @@ pip install fisis
 ```python
 from fisis import FISIS
 
-f = FISIS(api_key="발급받은-키")
+fisis = FISIS(api_key="발급받은-키")
 ```
 
 **방법 2 — 파일에 저장해서 계속 쓰기** (권장 — 한 번 저장하면 매번 안 넣어도 됩니다)
@@ -73,8 +75,8 @@ f = FISIS(api_key="발급받은-키")
 ```python
 from fisis import FISIS
 
-f = FISIS()                                        # 저장한 키를 자동으로 찾음
-sl = f.life.company("삼성생명")                       # 회사 손잡이 (코드 "0010595" 도 가능)
+fisis = FISIS()                      # 저장한 키를 자동으로 찾음
+sl = fisis.life.company("삼성생명")  # 회사 손잡이 (코드 "0010595" 도 가능)
 table = sl.persistency(start_month="202312", end_month="202312")   # 13·25회 계약유지율
 ```
 
@@ -98,19 +100,19 @@ pd.DataFrame(table.rows)
 
 ## 3. 권역 접근자
 
-권역(`f.life`, `f.bank`, ...)은 명시적으로 정의돼 있어 편집기에서 점(`.`)을 치면
+권역(`fisis.life`, `fisis.bank`, ...)은 명시적으로 정의돼 있어 편집기에서 점(`.`)을 치면
 자동완성됩니다. 권역에서 회사를 고르고, 회사 손잡이에서 지표를 부릅니다.
 
 ```text
 FISIS()
-├─ life · nonlife · bank · card · securities      # 이름 붙은 지표가 있는 5개 권역
-│   └─ .company("회사명" 또는 "코드")               # 회사 손잡이 (CompanyView)
-│       ├─ .solvency(...) / .capital_adequacy(...)  지급여력 · 자본적정성
-│       ├─ .persistency(...)                        계약유지율        (보험)
-│       ├─ .delinquency(...)                        연체율 · 연체채권  (은행·카드)
-│       └─ .fetch(list_no=..., term=..., ...)       통계표 코드로 직접 (Table: 행+단위+결산일)
-└─ (그 외 17개 권역)                                 # foreign_bank, savings_bank, capital ...
-    └─ .company("코드").fetch(list_no="...", ...)    # 이름 붙은 지표 없이 코드로
+├─ bank, securities, card, life, nonlife            # 이름 붙은 지표가 있는 5개 권역
+│   └─ .company("<name>" | "<code>")                # 회사 손잡이 (CompanyView)
+│       ├─ .solvency(...) / .capital_adequacy(...)  # 지급여력 · 자본적정성
+│       ├─ .persistency(...)                        # 계약유지율 (보험)
+│       ├─ .delinquency(...)                        # 연체율 · 연체채권 (은행 · 카드)
+│       └─ .fetch(list_no=..., term=..., ...)       # 통계표 코드로 직접 (Table: 행+단위+결산일)
+└─ (+17 sectors)                                    # foreign_bank, savings_bank, capital ...
+    └─ .company("<code>").fetch(...)                # 이름 붙은 지표 없이 코드로
 ```
 
 `company(key)`는 `key`가 전부 숫자면 그것을 `finance_cd`로 바로 쓰고(조회 없음), 아니면
@@ -124,21 +126,7 @@ FISIS()
 반환값은 `Table` 하나입니다 — 값은 `.rows`, 열별 **단위**는 `.columns`, **결산일**은
 `.date_of_settlement`에 담겨 옵니다.
 
-### 생명보험 `f.life` / 손해보험 `f.nonlife`
-
-| 메서드 | 지표 | 코드(생·손보) |
-|---|---|---|
-| `solvency` | 지급여력비율 (RBC/K-ICS) | SH021 / SI021 |
-| `efficiency` | 경영효율지표 | SH114 / SI114 |
-| `persistency` | 계약유지율 (13·25회) | SH025 / SI025 |
-| `agent_retention` | 설계사정착률 | SH022 / SI022 |
-| `asset_quality` | 자산건전성 | SH112 / SI112 |
-| `liquidity` | 유동성 | SH115 / SI115 |
-| `balance_sheet` | 요약재무상태표 | SH150 / SI146 |
-| `income_statement` | 요약손익계산서 | SH154 / SI150 |
-| `new_business` `in_force` `premium_income` | 신계약·보유계약·보험료수입 | SH160 · SH161 · SH166 (생보) |
-
-### 은행 `f.bank`
+### 은행 `fisis.bank`
 
 | 메서드 | 지표 | 코드 |
 |---|---|---|
@@ -152,15 +140,7 @@ FISIS()
 | `deposits` `loans` | 예수금·대출금 | SA028 · SA043 |
 | `balance_sheet` `income_statement` | 재무상태표·손익 | SA003 · SA021 |
 
-### 신용카드 `f.card`
-
-| 메서드 | 지표 | 코드 |
-|---|---|---|
-| `capital_adequacy` `asset_quality` `profitability` `liquidity` | 자본적정성·여신건전성·수익성·유동성 | SC007 · SC008 · SC009 · SC010 |
-| `delinquency` | 연체채권비율 | SC117 |
-| `credit_card_usage` `debit_card_usage` `purchase_volume` | 신용·직불 카드이용실적·구매실적 | SC013 · SC014 · SC016 |
-
-### 증권 `f.securities`
+### 증권 `fisis.securities`
 
 | 메서드 | 지표 | 코드 |
 |---|---|---|
@@ -168,6 +148,28 @@ FISIS()
 | `leverage` | 레버리지 비율 | SF331 |
 | `asset_quality` `liquidity` `profitability` | 자산건전성·유동성·수익성 | SF311 · SF209 · SF210 |
 | `securities_trading` `derivatives_trading` | 증권·파생상품 거래현황 | SF316 · SF317 |
+
+### 신용카드 `fisis.card`
+
+| 메서드 | 지표 | 코드 |
+|---|---|---|
+| `capital_adequacy` `asset_quality` `profitability` `liquidity` | 자본적정성·여신건전성·수익성·유동성 | SC007 · SC008 · SC009 · SC010 |
+| `delinquency` | 연체채권비율 | SC117 |
+| `credit_card_usage` `debit_card_usage` `purchase_volume` | 신용·직불 카드이용실적·구매실적 | SC013 · SC014 · SC016 |
+
+### 생명보험 `fisis.life` / 손해보험 `fisis.nonlife`
+
+| 메서드 | 지표 | 코드(생·손보) |
+|---|---|---|
+| `solvency` | 지급여력비율 (RBC/K-ICS) | SH021 / SI021 |
+| `efficiency` | 경영효율지표 | SH114 / SI114 |
+| `persistency` | 계약유지율 (13·25회) | SH025 / SI025 |
+| `agent_retention` | 설계사정착률 | SH022 / SI022 |
+| `asset_quality` | 자산건전성 | SH112 / SI112 |
+| `liquidity` | 유동성 | SH115 / SI115 |
+| `balance_sheet` | 요약재무상태표 | SH150 / SI146 |
+| `income_statement` | 요약손익계산서 | SH154 / SI150 |
+| `new_business` `in_force` `premium_income` | 신계약·보유계약·보험료수입 | SH160 · SH161 · SH166 (생보) |
 
 권역 속성 이름: `bank`, `foreign_bank`, `life`, `nonlife`, `securities`, `futures`,
 `asset_management`, `investment_advisory`, `merchant_bank`, `card`, `leasing`,
@@ -183,13 +185,13 @@ FISIS()
 ```python
 from fisis import FISIS, Sector, Term
 
-f = FISIS()
+fisis = FISIS()
 
-companies  = f.list_companies(sector=Sector.LIFE)                 # 회사 -> finance_cd
-statistics = f.list_statistics(sector=Sector.LIFE)                # 통계표 -> list_no
-accounts   = f.list_accounts(list_no=statistics[0]["list_no"])    # 계정항목 -> account_cd
+companies  = fisis.list_companies(sector=Sector.LIFE)                 # 회사 -> finance_cd
+statistics = fisis.list_statistics(sector=Sector.LIFE)                # 통계표 -> list_no
+accounts   = fisis.list_accounts(list_no=statistics[0]["list_no"])    # 계정항목 -> account_cd
 
-table = f.fetch_data(                                             # 통계자료 (YYYYMM, 최대 40분기)
+table = fisis.fetch_data(                                             # 통계자료 (YYYYMM, 최대 40분기)
     finance_cd=companies[0]["finance_cd"],
     list_no=statistics[0]["list_no"],
     term=Term.QUARTERLY, start_month="202403", end_month="202412",
@@ -216,10 +218,10 @@ table.to_pandas()                            # pandas.DataFrame
 설치하면 `fisis` 명령이 함께 깔립니다.
 
 ```sh
-fisis companies --sector life                                  # 권역의 회사 목록
-fisis statistics --sector life --category key_metrics          # 통계표 목록
-fisis accounts SH025                                           # 통계표의 계정항목
-fisis data 0010595 SH025 --term H --start 202312 --end 202312  # 통계자료 (유지율)
+fisis companies --sector life                                          # 권역의 회사 목록
+fisis statistics --sector life --category key_metrics                  # 통계표 목록
+fisis accounts SH025                                                   # 통계표의 계정항목
+fisis data 0010595 SH025 --term H --start 202312 --end 202312          # 통계자료 (유지율)
 fisis data 0010595 SH150 --term Q --start 202403 --end 202403 --table  # + 열별 단위·결산일
 ```
 
@@ -264,24 +266,24 @@ ln -s "$PWD/plugins/fisis/skills/data" ~/.codex/skills/data    # Codex → $fisi
 
 Claude Code는 바로 인식하고, Codex는 재시작해야 로딩됩니다.
 
-## 7. 오류
+## 7. 에러
 
 | 예외 | 언제 |
 |---|---|
 | `FISISConfigError` | API 키를 찾지 못했을 때 |
 | `FISISAuthError` | FISIS가 키를 거부했을 때 (미등록·중지·삭제·샘플 키) |
 | `FISISRateLimitError` | 일일검색 허용횟수 초과(err 020) 또는 HTTP 429 |
-| `FISISResponseError` | FISIS가 오류를 돌려줬을 때 (`.code`·`.message`, 예: 40분기 초과 = 103) |
+| `FISISResponseError` | FISIS가 에러를 돌려줬을 때 (`.code`·`.message`, 예: 40분기 초과 = 103) |
 | `FISISNetworkError` | 네트워크가 끝내 안 됐을 때 |
 
 - 모든 예외는 `FISISError`의 하위입니다.
-- 조회 결과가 없으면 오류가 아니라 빈 결과로 옵니다 (카탈로그 조회는 빈 목록, `fetch_data`·지표 메서드는 행이 빈 `Table`).
+- 조회 결과가 없으면 에러가 아니라 빈 결과로 옵니다 (카탈로그 조회는 빈 목록, `fetch_data`·지표 메서드는 행이 빈 `Table`).
 - 여러 회사·통계표를 잇달아 읽을 때는 `FISIS(delay_seconds=0.3)`으로 간격을 둡니다.
-- 오류 메시지와 표현에는 API 키가 절대 담기지 않습니다.
+- 에러 메시지와 표현에는 API 키가 절대 담기지 않습니다.
 
 ## 8. 라이선스
 
-fisis 소스 코드는 MIT © Seokhoon Joo.
+코드: MIT © Seokhoon Joo.
 
-FISIS 통계정보의 출처는 금융감독원 금융통계정보시스템이며, 국가승인통계가 아닌 업무보고서
-기반 자료입니다. 데이터 이용 시 FISIS 이용약관과 출처 표기를 따르세요.
+데이터: FISIS 통계정보의 출처는 금융감독원 금융통계정보시스템이며, 국가승인통계가 아닌
+업무보고서 기반 자료입니다. 데이터 이용 시 FISIS 이용약관과 출처 표기를 따르세요.

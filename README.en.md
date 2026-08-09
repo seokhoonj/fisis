@@ -29,24 +29,26 @@ regulator. Unlike **DART** (the electronic *disclosure* system), its value is th
 consolidated / separate); fisis reads them on the same **supervisory separate** basis
 alongside the supervisory ratios, from one source. Only the financial-statement metrics
 overlap with DART (Samsung Life's separate total assets match across both sources); the
-rest are fisis-only.
+rest are fisis-only. Cross-check the DART figures with [opendart-client](https://github.com/seokhoonj/opendart-client).
 
 | group | indicator | dart | fisis |
 |---|---|---|---|
 | bank | `balance_sheet` · `income_statement` | ✅ | ✅ |
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
-| life · nonlife | `solvency` (RBC/K-ICS) · `persistency` · `efficiency` · `premium_income` | ❌ | ✅ |
-| card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
+| card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
+| life · nonlife | `solvency` (RBC/K-ICS) · `persistency` · `efficiency` · `premium_income` (life) | ❌ | ✅ |
 
 Frequently-used figures are reached through an **accessor**
-(`f.life.company("Samsung Life", lang="en").persistency(start_month="202312",
+(`fisis.life.company("Samsung Life", lang="en").persistency(start_month="202312",
 end_month="202312")`); everything else by statistics code.
 
 ## 1. Install
 
 ```bash
-pip install fisis
+pip install fisis          # core (httpx only)
+pip install fisis[pandas]  # + Table.to_pandas()
+pip install fisis[polars]  # + Table.to_polars()
 ```
 
 fisis needs a FISIS API key. Get one free at <https://fisis.fss.or.kr/> (a non-profit key
@@ -57,7 +59,7 @@ is issued instantly). Supply the key as follows.
 ```python
 from fisis import FISIS
 
-f = FISIS(api_key="your-key")
+fisis = FISIS(api_key="your-key")
 ```
 
 **Option 2 — save it to a file** (recommended — save once, never pass it again)
@@ -80,8 +82,8 @@ constructor argument → environment variable → file.
 ```python
 from fisis import FISIS
 
-f = FISIS()                                          # finds your saved key
-sl = f.life.company("Samsung Life", lang="en")       # a company handle (or the code "0010595")
+fisis = FISIS()                                     # finds your saved key
+sl = fisis.life.company("Samsung Life", lang="en")  # a company handle (or the code "0010595")
 table = sl.persistency(start_month="202312", end_month="202312")   # 13- & 25-month persistency
 ```
 
@@ -106,19 +108,19 @@ pd.DataFrame(table.rows)
 
 ## 3. Sector accessors
 
-Sectors (`f.life`, `f.bank`, ...) are explicit attributes, so an editor autocompletes them
+Sectors (`fisis.life`, `fisis.bank`, ...) are explicit attributes, so an editor autocompletes them
 when you type `.`. Pick a company on a sector, then call a statistic on the company handle.
 
 ```text
 FISIS()
-├─ life · nonlife · bank · card · securities      # the 5 sectors with named statistics
-│   └─ .company("<name>" or "<code>")             # a company handle (CompanyView)
-│       ├─ .solvency(...) / .capital_adequacy(...)  solvency · capital adequacy
-│       ├─ .persistency(...)                        contract persistency  (insurers)
-│       ├─ .delinquency(...)                        delinquency  (bank · card)
-│       └─ .fetch(list_no=..., term=..., ...)       any statistic, by code (Table: rows+units+settlement)
-└─ (the other 17 sectors)                          # foreign_bank, savings_bank, capital ...
-    └─ .company("<code>").fetch(list_no="...", ...) # by code, no named statistics
+├─ bank, securities, card, life, nonlife            # the 5 sectors with named statistics
+│   └─ .company("<name>" | "<code>")                # a company handle (CompanyView)
+│       ├─ .solvency(...) / .capital_adequacy(...)  # solvency / capital adequacy
+│       ├─ .persistency(...)                        # contract persistency (insurers)
+│       ├─ .delinquency(...)                        # delinquency (bank / card)
+│       └─ .fetch(list_no=..., term=..., ...)       # any statistic, by code (Table: rows+units+settlement)
+└─ (+17 sectors)                                    # foreign_bank, savings_bank, capital ...
+    └─ .company("<code>").fetch(...)                # by code, no named statistics
 ```
 
 `company(key)` takes an all-digit `key` as the `finance_cd` directly (no lookup);
@@ -133,21 +135,7 @@ value the statistic actually accepts (mostly quarterly `Q`; persistency half-yea
 agent retention annual `Y`). Each returns a `Table` -- the values on `.rows`, per-column
 **units** on `.columns`, the **settlement date** on `.date_of_settlement`.
 
-### Life `f.life` / Non-life `f.nonlife`
-
-| Method | Metric | Code (life / non-life) |
-|---|---|---|
-| `solvency` | solvency ratio (RBC/K-ICS) | SH021 / SI021 |
-| `efficiency` | management-efficiency ratios | SH114 / SI114 |
-| `persistency` | contract persistency (13-/25-month) | SH025 / SI025 |
-| `agent_retention` | agent retention rate | SH022 / SI022 |
-| `asset_quality` | asset soundness | SH112 / SI112 |
-| `liquidity` | liquidity | SH115 / SI115 |
-| `balance_sheet` | summary balance sheet | SH150 / SI146 |
-| `income_statement` | summary income statement | SH154 / SI150 |
-| `new_business` `in_force` `premium_income` | new business · in-force · premium income | SH160 · SH161 · SH166 (life) |
-
-### Bank `f.bank`
+### Bank `fisis.bank`
 
 | Method | Metric | Code |
 |---|---|---|
@@ -161,15 +149,7 @@ agent retention annual `Y`). Each returns a `Table` -- the values on `.rows`, pe
 | `deposits` `loans` | deposits · loans | SA028 · SA043 |
 | `balance_sheet` `income_statement` | balance sheet · income statement | SA003 · SA021 |
 
-### Card `f.card`
-
-| Method | Metric | Code |
-|---|---|---|
-| `capital_adequacy` `asset_quality` `profitability` `liquidity` | capital adequacy · loan soundness · profitability · liquidity | SC007 · SC008 · SC009 · SC010 |
-| `delinquency` | delinquent-receivable ratio | SC117 |
-| `credit_card_usage` `debit_card_usage` `purchase_volume` | credit / debit card usage · purchase volume | SC013 · SC014 · SC016 |
-
-### Securities `f.securities`
+### Securities `fisis.securities`
 
 | Method | Metric | Code |
 |---|---|---|
@@ -177,6 +157,28 @@ agent retention annual `Y`). Each returns a `Table` -- the values on `.rows`, pe
 | `leverage` | leverage ratio | SF331 |
 | `asset_quality` `liquidity` `profitability` | asset soundness · liquidity · profitability | SF311 · SF209 · SF210 |
 | `securities_trading` `derivatives_trading` | securities · derivatives trading | SF316 · SF317 |
+
+### Card `fisis.card`
+
+| Method | Metric | Code |
+|---|---|---|
+| `capital_adequacy` `asset_quality` `profitability` `liquidity` | capital adequacy · loan soundness · profitability · liquidity | SC007 · SC008 · SC009 · SC010 |
+| `delinquency` | delinquent-receivable ratio | SC117 |
+| `credit_card_usage` `debit_card_usage` `purchase_volume` | credit / debit card usage · purchase volume | SC013 · SC014 · SC016 |
+
+### Life `fisis.life` / Non-life `fisis.nonlife`
+
+| Method | Metric | Code (life / non-life) |
+|---|---|---|
+| `solvency` | solvency ratio (RBC/K-ICS) | SH021 / SI021 |
+| `efficiency` | management-efficiency ratios | SH114 / SI114 |
+| `persistency` | contract persistency (13-/25-month) | SH025 / SI025 |
+| `agent_retention` | agent retention rate | SH022 / SI022 |
+| `asset_quality` | asset soundness | SH112 / SI112 |
+| `liquidity` | liquidity | SH115 / SI115 |
+| `balance_sheet` | summary balance sheet | SH150 / SI146 |
+| `income_statement` | summary income statement | SH154 / SI150 |
+| `new_business` `in_force` `premium_income` | new business · in-force · premium income | SH160 · SH161 · SH166 (life) |
 
 Sector attribute names: `bank`, `foreign_bank`, `life`, `nonlife`, `securities`,
 `futures`, `asset_management`, `investment_advisory`, `merchant_bank`, `card`, `leasing`,
@@ -192,13 +194,13 @@ account item (`account_cd`)**.
 ```python
 from fisis import FISIS, Sector, Term
 
-f = FISIS()
+fisis = FISIS()
 
-companies  = f.list_companies(sector=Sector.LIFE)                 # company -> finance_cd
-statistics = f.list_statistics(sector=Sector.LIFE)                # statistic -> list_no
-accounts   = f.list_accounts(list_no=statistics[0]["list_no"])    # account item -> account_cd
+companies  = fisis.list_companies(sector=Sector.LIFE)                 # company -> finance_cd
+statistics = fisis.list_statistics(sector=Sector.LIFE)                # statistic -> list_no
+accounts   = fisis.list_accounts(list_no=statistics[0]["list_no"])    # account item -> account_cd
 
-table = f.fetch_data(                                             # observations (YYYYMM, max 40 quarters)
+table = fisis.fetch_data(                                             # observations (YYYYMM, max 40 quarters)
     finance_cd=companies[0]["finance_cd"],
     list_no=statistics[0]["list_no"],
     term=Term.QUARTERLY, start_month="202403", end_month="202412",
@@ -227,10 +229,10 @@ table.to_pandas()                            # pandas.DataFrame
 Installing fisis also installs the `fisis` command.
 
 ```sh
-fisis companies --sector life                                  # a sector's companies
-fisis statistics --sector life --category key_metrics          # its statistics catalog
-fisis accounts SH025                                           # a statistic's account items
-fisis data 0010595 SH025 --term H --start 202312 --end 202312  # observations (persistency)
+fisis companies --sector life                                          # a sector's companies
+fisis statistics --sector life --category key_metrics                  # its statistics catalog
+fisis accounts SH025                                                   # a statistic's account items
+fisis data 0010595 SH025 --term H --start 202312 --end 202312          # observations (persistency)
 fisis data 0010595 SH150 --term Q --start 202403 --end 202403 --table  # + per-column units & settlement
 ```
 
@@ -292,8 +294,8 @@ Claude Code picks it up immediately; Codex needs a restart to load it.
 
 ## 8. License
 
-The fisis source code is licensed MIT © Seokhoon Joo.
+Code: MIT © Seokhoon Joo.
 
-FISIS statistics are sourced from the Financial Supervisory Service's Financial Statistics
+Data: FISIS statistics are sourced from the Financial Supervisory Service's Financial Statistics
 Information System — business-report data, not government-approved official statistics.
 When using the data, follow the FISIS terms of use and its source-attribution requirement.

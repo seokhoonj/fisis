@@ -29,6 +29,11 @@ classifiers = [
 dependencies = ["httpx>=0.27"]
 
 [project.optional-dependencies]
+# Frame converters are optional: Table.to_pandas / to_polars import their backend
+# lazily, so the core install stays httpx-only. `pip install fisis[pandas]` /
+# `fisis[polars]` pulls the one you want.
+pandas = ["pandas"]
+polars = ["polars"]
 dev = [
     "mypy>=1.11",
     "pytest>=8.0",
