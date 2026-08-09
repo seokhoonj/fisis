@@ -1,0 +1,33 @@
+{
+  "name": "fisis",
+  "version": "0.1.0",
+  "description": "Read FSS FISIS financial-institution statistics from the command line, powered by the fisis CLI",
+  "author": {
+    "name": "seokhoonj",
+    "url": "https://github.com/seokhoonj"
+  },
+  "homepage": "https://github.com/seokhoonj/fisis",
+  "repository": "https://github.com/seokhoonj/fisis",
+  "license": "MIT",
+  "keywords": [
+    "fisis",
+    "fss",
+    "financial statistics",
+    "korea",
+    "finance"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "fisis",
+    "shortDescription": "Read FSS FISIS financial-institution statistics",
+    "longDescription": "List a financial sector's companies, browse its statistics catalog, list a statistic's account items, then fetch that statistic's observations as a time series (with per-column units and the settlement date) from the FSS FISIS Open API via the fisis CLI. Needs a free FISIS API key in FISIS_API_KEY.",
+    "developerName": "seokhoonj",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "List the FISIS companies in the life-insurance sector",
+      "Browse the FISIS statistics catalog for banks",
+      "Fetch a FISIS statistic as a time series"
+    ]
+  }
+}

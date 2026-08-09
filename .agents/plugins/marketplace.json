@@ -1,0 +1,20 @@
+{
+  "name": "fisis",
+  "interface": {
+    "displayName": "fisis"
+  },
+  "plugins": [
+    {
+      "name": "fisis",
+      "source": {
+        "source": "local",
+        "path": "./plugins/fisis"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

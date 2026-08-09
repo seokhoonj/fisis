@@ -1,0 +1,19 @@
+{
+  "name": "fisis",
+  "displayName": "fisis",
+  "description": "Read FSS FISIS financial-institution statistics from the command line, powered by the fisis CLI",
+  "version": "0.1.0",
+  "author": {
+    "name": "seokhoonj"
+  },
+  "homepage": "https://github.com/seokhoonj/fisis",
+  "repository": "https://github.com/seokhoonj/fisis",
+  "license": "MIT",
+  "keywords": [
+    "fisis",
+    "fss",
+    "financial statistics",
+    "korea",
+    "finance"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "fisis",
+  "owner": {
+    "name": "seokhoonj"
+  },
+  "description": "Read FSS FISIS financial-institution statistics from the command line",
+  "plugins": [
+    {
+      "name": "fisis",
+      "displayName": "fisis",
+      "source": "./plugins/fisis",
+      "description": "Read FSS FISIS financial-institution statistics from the command line",
+      "author": {
+        "name": "seokhoonj"
+      },
+      "homepage": "https://github.com/seokhoonj/fisis",
+      "category": "Productivity",
+      "keywords": [
+        "fisis",
+        "fss",
+        "financial statistics",
+        "korea",
+        "finance"
+      ]
+    }
+  ]
+}
