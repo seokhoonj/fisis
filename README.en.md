@@ -33,7 +33,7 @@ rest are fisis-only. Cross-check the DART figures with [opendart-client](https:/
 
 | group | indicator | dart | fisis |
 |---|---|---|---|
-| all 5 named sectors | `balance_sheet` · `income_statement` | ✅ | ✅ |
+| common | `balance_sheet` · `income_statement` | ✅ | ✅ |
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
 | card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
@@ -112,41 +112,41 @@ Sectors (`fisis.life`, `fisis.bank`, ...) are explicit attributes, so an editor 
 when you type `.`. Pick a company on a sector, then call a statistic on the company handle.
 
 ```text
-FISIS()                                              # 5 sectors have named statistics; the other 17 are code-only
+FISIS()                                               # 5 sectors have named statistics; the other 17 are code-only
 │  each sector: .company("<name>" | "<code>") gives a company handle (CompanyView) whose statistics are named
 │
 ├─ bank
-│   ├─ .capital_adequacy()                          # capital adequacy (BIS)
-│   ├─ .delinquency()  .npl_ratio()                 # delinquency · non-performing loans
-│   ├─ .deposits()  .loans()                        # deposits · loans
-│   ├─ .balance_sheet()  .income_statement()        # balance sheet (assets) · income
-│   └─ ...                                          # full metric list in the tables below
+│   ├─ .capital_adequacy()                            # capital adequacy (BIS)
+│   ├─ .delinquency()  .npl_ratio()                   # delinquency · non-performing loans
+│   ├─ .deposits()  .loans()                          # deposits · loans
+│   ├─ .balance_sheet()  .income_statement()          # balance sheet (assets) · income
+│   └─ ...                                            # full metric list in the tables below
 ├─ life
-│   ├─ .solvency()                                  # solvency (RBC/K-ICS)
-│   ├─ .persistency()  .agent_retention()           # persistency · agent retention
-│   ├─ .new_business()  .premium_income()           # new business · premium income
+│   ├─ .solvency()                                    # solvency (RBC/K-ICS)
+│   ├─ .persistency()  .agent_retention()             # persistency · agent retention
+│   ├─ .new_business()  .premium_income()             # new business · premium income
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 ├─ nonlife
-│   ├─ .solvency()  .persistency()  .efficiency()   # solvency · persistency · efficiency
-│   ├─ .premium_income()  .retained_premium()       # premium income · retained premium (long-term/auto/general)
+│   ├─ .solvency()  .persistency()  .efficiency()     # solvency · persistency · efficiency
+│   ├─ .premium_income()  .retained_premium()         # premium income · retained premium (long-term/auto/general)
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 ├─ securities
-│   ├─ .net_capital_ratio()  .leverage()            # NCR · leverage
+│   ├─ .net_capital_ratio()  .leverage()              # NCR · leverage
 │   ├─ .securities_trading()  .derivatives_trading()  # securities · derivatives trading
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 ├─ card
-│   ├─ .delinquency()                               # delinquent receivables
-│   ├─ .credit_card_usage()  .purchase_volume()     # card usage · purchase volume
+│   ├─ .delinquency()                                 # delinquent receivables
+│   ├─ .credit_card_usage()  .purchase_volume()       # card usage · purchase volume
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 │
 │  * every handle also has: .fetch(list_no=..., term=..., ...)  ->  Data(rows + units + settlement)
 │
-└─ (+17 sectors)                                     # foreign_bank · savings_bank · capital · futures ...
-    └─ .company("<code>").fetch(list_no=...)         # by code only, no named statistics
+└─ (+17 sectors)                                      # foreign_bank · savings_bank · capital · futures ...
+    └─ .company("<code>").fetch(list_no=...)          # by code only, no named statistics
 ```
 
 `company(key)` takes an all-digit `key` as the `finance_cd` directly (no lookup);

@@ -28,7 +28,7 @@
 
 | group | indicator | dart | fisis |
 |---|---|---|---|
-| 이름 붙은 5개 권역 | `balance_sheet` · `income_statement` | ✅ | ✅ |
+| 공통 | `balance_sheet` · `income_statement` | ✅ | ✅ |
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
 | card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
@@ -104,41 +104,41 @@ pd.DataFrame(table.rows)
 자동완성됩니다. 권역에서 회사를 고르고, 회사 손잡이에서 지표를 부릅니다.
 
 ```text
-FISIS()                                              # 5개 권역은 이름 붙은 지표, 나머지 17개는 코드로만
-│  각 권역: .company("<이름>" | "<코드>") 로 회사 손잡이(CompanyView)를 얻어 지표를 이름으로 호출
+FISIS()                                               # 5개 권역은 이름 붙은 지표, 나머지 17개는 코드로만
+│  각 권역: .company("<name>" | "<code>") 로 회사(CompanyView)를 얻어 지표를 이름으로 호출
 │
 ├─ bank
-│   ├─ .capital_adequacy()                          # 자본적정성 (BIS)
-│   ├─ .delinquency()  .npl_ratio()                 # 연체율 · 고정이하여신
-│   ├─ .deposits()  .loans()                        # 예수금 · 대출금
-│   ├─ .balance_sheet()  .income_statement()        # 재무상태표(자산) · 손익
-│   └─ ...                                          # 전체 지표는 아래 권역별 표
+│   ├─ .capital_adequacy()                            # 자본적정성 (BIS)
+│   ├─ .delinquency()  .npl_ratio()                   # 연체율 · 고정이하여신
+│   ├─ .deposits()  .loans()                          # 예수금 · 대출금
+│   ├─ .balance_sheet()  .income_statement()          # 재무상태표(자산) · 손익
+│   └─ ...                                            # 전체 지표는 아래 권역별 표
 ├─ life
-│   ├─ .solvency()                                  # 지급여력 (RBC/K-ICS)
-│   ├─ .persistency()  .agent_retention()           # 계약유지율 · 설계사정착률
-│   ├─ .new_business()  .premium_income()           # 신계약 · 보험료수입
+│   ├─ .solvency()                                    # 지급여력 (RBC/K-ICS)
+│   ├─ .persistency()  .agent_retention()             # 계약유지율 · 설계사정착률
+│   ├─ .new_business()  .premium_income()             # 신계약 · 보험료수입
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 ├─ nonlife
-│   ├─ .solvency()  .persistency()  .efficiency()   # 지급여력 · 유지율 · 경영효율
-│   ├─ .premium_income()  .retained_premium()       # 보험료수입 · 보유보험료(장기·자동차·일반)
+│   ├─ .solvency()  .persistency()  .efficiency()     # 지급여력 · 유지율 · 경영효율
+│   ├─ .premium_income()  .retained_premium()         # 보험료수입 · 보유보험료(장기·자동차·일반)
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 ├─ securities
-│   ├─ .net_capital_ratio()  .leverage()            # NCR · 레버리지
+│   ├─ .net_capital_ratio()  .leverage()              # NCR · 레버리지
 │   ├─ .securities_trading()  .derivatives_trading()  # 증권 · 파생 거래현황
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 ├─ card
-│   ├─ .delinquency()                               # 연체채권
-│   ├─ .credit_card_usage()  .purchase_volume()     # 카드이용 · 구매실적
+│   ├─ .delinquency()                                 # 연체채권
+│   ├─ .credit_card_usage()  .purchase_volume()       # 카드이용 · 구매실적
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 │
-│  * 모든 손잡이 공통: .fetch(list_no=..., term=..., ...)  ->  Data(행 + 단위 + 결산일)
+│  * 모든 회사 공통: .fetch(list_no=..., term=..., ...)  ->  Data(행 + 단위 + 결산일)
 │
-└─ (+17 sectors)                                     # foreign_bank · savings_bank · capital · futures ...
-    └─ .company("<코드>").fetch(list_no=...)         # 이름 붙은 지표 없이 코드로만
+└─ (+17 sectors)                                      # foreign_bank · savings_bank · capital · futures ...
+    └─ .company("<code>").fetch(list_no=...)          # 이름 붙은 지표 없이 코드로만
 ```
 
 `company(key)`는 `key`가 전부 숫자면 그것을 `finance_cd`로 바로 쓰고(조회 없음), 아니면
