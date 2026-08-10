@@ -239,7 +239,7 @@ def test_named_method_returns_resolved_table():
     payload = _success([row], description=[{"column_id": "a", "column_nm": "비율"}],
                        unit="%")
     fisis = _client([payload])
-    table = fisis.life.company("0010595").solvency(
+    data = fisis.life.company("0010595").solvency(
         start_month="202312", end_month="202312")
-    assert table.rows[0]["비율"] == "201.5"  # value column resolved
-    assert [(c.name, c.unit) for c in table.columns] == [("비율", "%")]  # units carried
+    assert data.rows[0]["비율"] == "201.5"  # value column resolved
+    assert [(c.name, c.unit) for c in data.columns] == [("비율", "%")]  # units carried

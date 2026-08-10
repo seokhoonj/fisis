@@ -22,8 +22,9 @@ from typing import Any, cast
 from .exceptions import FISISResponseError
 from .types import Column, Data, DataRow
 
-# The identifying fields of a statisticsInfoSearch row. Never renamed, even if a
-# legend entry happened to reuse one of these as a column_id.
+# The identifying fields of a statisticsInfoSearch row. A legend entry that
+# reused one of these as a column_id is dropped from the legend, so it is neither
+# renamed onto a row nor advertised as a value column no row carries.
 _FIXED_DATA_KEYS = frozenset(
     {"base_month", "finance_cd", "finance_nm", "account_cd", "account_nm"})
 
@@ -89,7 +90,8 @@ def _legend_entries(description: Any) -> list[tuple[str, str]]:
     single-column statistic may arrive as one bare object, and a
     ``{"column": [...]}`` wrapper is accepted defensively; ``_as_row_list``
     normalizes all three to a list. Order is preserved so a positional unit
-    list can be aligned against it.
+    list can be aligned against it. An entry whose ``column_id`` reuses a fixed
+    row key (:data:`_FIXED_DATA_KEYS`) is skipped -- it names no value column.
     """
     if isinstance(description, dict) and "column_id" not in description:
         description = description.get("column")  # unwrap a {"column": [...]} form
@@ -97,7 +99,8 @@ def _legend_entries(description: Any) -> list[tuple[str, str]]:
     for column in _as_row_list(description):
         column_id = column.get("column_id")
         column_nm = column.get("column_nm")
-        if isinstance(column_id, str) and isinstance(column_nm, str):
+        if (isinstance(column_id, str) and isinstance(column_nm, str)
+                and column_id not in _FIXED_DATA_KEYS):
             entries.append((column_id, column_nm))
     return entries
 
@@ -109,7 +112,7 @@ def _columns(description: Any, unit: Any) -> tuple[Column, ...]:
     columns (``"원,%"`` -> 원, %); a single-column table gives one token
     (``"%"``). If the token count does not match the column count, every unit is
     ``None`` -- the alignment is unknowable, so it is not guessed. Returned as a
-    tuple so the legend on a frozen ``Data`` is honestly immutable.
+    tuple so the value-column legend is a fixed, immutable sequence.
     """
     entries = _legend_entries(description)
     units = _split_units(unit, len(entries))

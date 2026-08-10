@@ -12,7 +12,7 @@ from fisis.types import Column, Data
 
 
 class _FakeFISIS:
-    """Stand-in for the client: records calls and returns canned rows or a table.
+    """Stand-in for the client: records calls and returns canned rows or a Data.
 
     The class attributes are set per test; instances are what ``with FISIS() as f``
     yields. The CLI passes the sector / term / lang strings straight through, so the
@@ -20,7 +20,7 @@ class _FakeFISIS:
     """
 
     rows: list[dict] = []
-    table: Data | None = None
+    data: Data | None = None
     error: Exception | None = None
     calls: list[tuple[str, dict]] = []
 
@@ -49,20 +49,20 @@ class _FakeFISIS:
         return self._run("list_accounts", **kwargs)
 
     def fetch_data(self, **kwargs):
-        # One fetch returns the full Data; a test sets `.table` for the legend
+        # One fetch returns the full Data; a test sets `.data` for the legend
         # cases, else the rows are wrapped in a column-less, settlement-less Data.
         type(self).calls.append(("fetch_data", kwargs))
         if type(self).error is not None:
             raise type(self).error
-        if type(self).table is not None:
-            return type(self).table
+        if type(self).data is not None:
+            return type(self).data
         return Data(rows=type(self).rows, columns=(), date_of_settlement=None)
 
 
 @pytest.fixture(autouse=True)
 def _stub(monkeypatch):
     _FakeFISIS.rows = []
-    _FakeFISIS.table = None
+    _FakeFISIS.data = None
     _FakeFISIS.error = None
     _FakeFISIS.calls = []
     monkeypatch.setattr(cli, "FISIS", _FakeFISIS)
@@ -165,7 +165,7 @@ def test_data_account_cd_forwarded():
 
 
 def test_data_table_renders_legend_and_settlement(capsys):
-    _FakeFISIS.table = Data(
+    _FakeFISIS.data = Data(
         rows=[{"base_month": "202403", "금액": "1000", "구성비": "55.5"}],
         columns=(Column("a", "금액", "원"), Column("b", "구성비", "%")),
         date_of_settlement="12/31")
@@ -180,7 +180,7 @@ def test_data_table_renders_legend_and_settlement(capsys):
 
 
 def test_data_table_json_shape(capsys):
-    _FakeFISIS.table = Data(
+    _FakeFISIS.data = Data(
         rows=[{"base_month": "202403", "금액": "1000"}],
         columns=(Column("a", "금액", "원"),),
         date_of_settlement="12/31")

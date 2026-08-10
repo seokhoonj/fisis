@@ -89,6 +89,17 @@ def test_data_rows_never_renames_identifying_fields():
 # -- make_data (rows + column/unit legend + settlement) ---------------------
 
 
+def test_make_data_legend_reusing_fixed_key_yields_no_phantom_column():
+    # A legend entry reusing an identifying field as its column_id must not
+    # surface as a value column no row carries (the columns-side of the guard
+    # that test_data_rows_never_renames_identifying_fields checks on the rows).
+    result = _balance_result()
+    result["description"].append({"column_id": "finance_nm", "column_nm": "회사"})
+    columns = make_data(result).columns
+    assert all(column.column_id != "finance_nm" for column in columns)
+    assert all(column.name != "회사" for column in columns)
+
+
 def test_make_data_pairs_names_with_units_positionally():
     result = {
         "description": [{"column_id": "a", "column_nm": "금액"},
@@ -98,11 +109,11 @@ def test_make_data_pairs_names_with_units_positionally():
         "list": [{"base_month": "202403", "finance_cd": "0010001",
                   "account_cd": "A", "account_nm": "자산", "a": "1000", "b": "55.5"}],
     }
-    table = make_data(result)
-    assert table.columns == (Column("a", "금액", "원"), Column("b", "구성비", "%"))
-    assert table.date_of_settlement == "12/31"
-    assert table.rows[0]["금액"] == "1000"
-    assert table.rows[0]["구성비"] == "55.5"
+    data = make_data(result)
+    assert data.columns == (Column("a", "금액", "원"), Column("b", "구성비", "%"))
+    assert data.date_of_settlement == "12/31"
+    assert data.rows[0]["금액"] == "1000"
+    assert data.rows[0]["구성비"] == "55.5"
 
 
 def test_make_data_single_column_single_unit():
@@ -112,9 +123,9 @@ def test_make_data_single_column_single_unit():
         "list": [{"base_month": "202212", "finance_cd": "0010597",
                   "account_cd": "A", "account_nm": "영업이익률", "a": "2.65"}],
     }
-    table = make_data(result)
-    assert table.columns == (Column("a", "영업이익률", "%"),)
-    assert table.date_of_settlement is None  # absent -- passes through as None
+    data = make_data(result)
+    assert data.columns == (Column("a", "영업이익률", "%"),)
+    assert data.date_of_settlement is None  # absent -- passes through as None
 
 
 def test_make_data_unit_count_mismatch_sets_every_unit_none():
@@ -124,9 +135,9 @@ def test_make_data_unit_count_mismatch_sets_every_unit_none():
         "unit": "원",  # one token for two columns -- alignment is unknowable
         "list": [{"base_month": "202403", "a": "1000", "b": "55.5"}],
     }
-    table = make_data(result)
-    assert [column.name for column in table.columns] == ["금액", "구성비"]
-    assert all(column.unit is None for column in table.columns)
+    data = make_data(result)
+    assert [column.name for column in data.columns] == ["금액", "구성비"]
+    assert all(column.unit is None for column in data.columns)
 
 
 def test_make_data_missing_unit_sets_unit_none():

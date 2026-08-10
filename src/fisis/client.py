@@ -64,13 +64,15 @@ def _to_enum(enum_cls: type[_E], value: _E | str) -> _E:
         return enum_cls(value)  # by vendor code value
     except ValueError:
         pass
-    try:
-        return enum_cls[value.upper()]  # by member name
-    except KeyError:
-        words = ", ".join(member.name.lower() for member in enum_cls)
-        raise ValueError(
-            f"{value!r} is not a valid {enum_cls.__name__}; use one of: {words}"
-        ) from None
+    if isinstance(value, str):
+        try:
+            return enum_cls[value.upper()]  # by member name
+        except KeyError:
+            pass
+    words = ", ".join(member.name.lower() for member in enum_cls)
+    raise ValueError(
+        f"{value!r} is not a valid {enum_cls.__name__}; use one of: {words}"
+    ) from None
 
 
 class FISIS:
@@ -258,7 +260,7 @@ class FISIS:
 
         Returns a :class:`Data` -- the observation ``rows`` plus the value-column
         legend (each column's human name and unit) and the fiscal
-        ``date_of_settlement``. The rows are the common case (``table.rows`` is
+        ``date_of_settlement``. The rows are the common case (``data.rows`` is
         the records list ``pd.DataFrame`` / ``pl.DataFrame`` consume, or
         :meth:`Data.to_pandas` / :meth:`Data.to_polars`); the legend is there
         for when the numbers are meaningless without their units (a table mixing

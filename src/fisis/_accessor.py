@@ -212,8 +212,8 @@ class CompanyView:
     ) -> Data:
         """Fetch this company's observations (delegates to ``fetch_data``).
 
-        Returns a :class:`Data` -- ``table.rows`` for the values, ``table.columns``
-        for each value column's unit, ``table.date_of_settlement`` for the fiscal
+        Returns a :class:`Data` -- ``data.rows`` for the values, ``data.columns``
+        for each value column's unit, ``data.date_of_settlement`` for the fiscal
         date. See :meth:`FISIS.fetch_data`.
         """
         return self._client.fetch_data(

@@ -77,22 +77,22 @@ from fisis import FISIS
 
 fisis = FISIS()                      # 저장한 키를 자동으로 찾음
 sl = fisis.life.company("삼성생명")  # 회사 손잡이 (코드 "0010595" 도 가능)
-table = sl.persistency(start_month="202312", end_month="202312")   # 13·25회 계약유지율
+data = sl.persistency(start_month="202312", end_month="202312")   # 13·25회 계약유지율
 ```
 
 반환은 `Data` — 값은 `.rows`(`dict`의 목록), 열별 단위는 `.columns`, 결산일은
 `.date_of_settlement`. 행은 표(DataFrame)로 한 줄에 바뀝니다(pandas는 필수가 아닙니다).
 
 ```python
-table.rows                    # [{'base_month': ..., '말잔': ...}, ...]
+data.rows                    # [{'base_month': ..., 'account_nm': '13회차 계약유지율', '비율': ...}, ...]
 
 # pandas / polars — 설치돼 있으면 변환 헬퍼로 바로
-table.to_pandas()
-table.to_polars()
+data.to_pandas()
+data.to_polars()
 
 # 또는 직접
 import pandas as pd
-pd.DataFrame(table.rows)
+pd.DataFrame(data.rows)
 ```
 
 `sector`·`category`·`term`·`lang`은 열거형 멤버, 벤더 코드(`"H"`, `"Q"`), 멤버 이름
@@ -111,28 +111,38 @@ FISIS()                                               # 5개 권역은 이름 �
 │   ├─ .capital_adequacy()                            # 자본적정성 (BIS)
 │   ├─ .delinquency()  .npl_ratio()                   # 연체율 · 고정이하여신
 │   ├─ .deposits()  .loans()                          # 예수금 · 대출금
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # 재무상태표 (자산)
+│   ├─ .balance_sheet_liabilities()                   # 재무상태표 (부채·자본)
+│   ├─ .income_statement()                            # 손익
 │   └─ ...                                            # 전체 지표는 아래 권역별 표
 ├─ life
 │   ├─ .solvency()                                    # 지급여력 (RBC/K-ICS)
 │   ├─ .persistency()  .agent_retention()             # 계약유지율 · 설계사정착률
 │   ├─ .new_business()  .premium_income()             # 신계약 · 보험료수입
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # 재무상태표 (자산)
+│   ├─ .balance_sheet_liabilities()                   # 재무상태표 (부채·자본)
+│   ├─ .income_statement()                            # 손익
 │   └─ ...
 ├─ nonlife
 │   ├─ .solvency()  .persistency()  .efficiency()     # 지급여력 · 유지율 · 경영효율
 │   ├─ .premium_income()  .retained_premium()         # 보험료수입 · 보유보험료(장기·자동차·일반)
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # 재무상태표 (자산)
+│   ├─ .balance_sheet_liabilities()                   # 재무상태표 (부채·자본)
+│   ├─ .income_statement()                            # 손익
 │   └─ ...
 ├─ securities
 │   ├─ .net_capital_ratio()  .leverage()              # NCR · 레버리지
 │   ├─ .securities_trading()  .derivatives_trading()  # 증권 · 파생 거래현황
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # 재무상태표 (자산)
+│   ├─ .balance_sheet_liabilities()                   # 재무상태표 (부채·자본)
+│   ├─ .income_statement()                            # 손익
 │   └─ ...
 ├─ card
 │   ├─ .delinquency()                                 # 연체채권
 │   ├─ .credit_card_usage()  .purchase_volume()       # 카드이용 · 구매실적
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # 재무상태표 (자산)
+│   ├─ .balance_sheet_liabilities()                   # 재무상태표 (부채·자본)
+│   ├─ .income_statement()                            # 손익
 │   └─ ...
 │
 │  * 모든 회사 공통: .fetch(list_no=..., term=..., ...)  ->  Data(행 + 단위 + 결산일)
@@ -201,10 +211,10 @@ FISIS()                                               # 5개 권역은 이름 �
 | `new_business` `in_force` `premium_income` | 신계약·보유계약·보험료수입 | SH160 · SH161 · SH166 (생보) |
 | `premium_income` `retained_premium` | 보험료수입(수납형태)·보유보험료(장기·자동차·일반) | SI027 · SI138 (손보) |
 
-권역 속성 이름: `bank`, `foreign_bank`, `life`, `nonlife`, `securities`, `futures`,
-`asset_management`, `investment_advisory`, `merchant_bank`, `card`, `leasing`,
-`capital`, `new_tech`, `savings_bank`, `credit_union`, `nonghyup`, `suhyup`,
-`forestry_coop`, `real_estate_trust`, `holding`, `trust_common`, `derivatives_common`.
+권역 속성 — **이름 붙은 지표가 있는 5개**: `bank` `life` `nonlife` `securities` `card`.
+**코드로만 조회하는 17개**: `foreign_bank` `futures` `asset_management` `investment_advisory`
+`merchant_bank` `leasing` `capital` `new_tech` `savings_bank` `credit_union` `nonghyup`
+`suhyup` `forestry_coop` `real_estate_trust` `holding` `trust_common` `derivatives_common`.
 
 ## 4. 평면 메서드 — 탐색 흐름
 
@@ -221,7 +231,7 @@ companies  = fisis.list_companies(sector=Sector.LIFE)                 # 회사 -
 statistics = fisis.list_statistics(sector=Sector.LIFE)                # 통계표 -> list_no
 accounts   = fisis.list_accounts(list_no=statistics[0]["list_no"])    # 계정항목 -> account_cd
 
-table = fisis.fetch_data(                                             # 통계자료 (YYYYMM, 최대 40분기)
+data = fisis.fetch_data(                                              # 통계자료 (YYYYMM, 최대 40분기)
     finance_cd=companies[0]["finance_cd"],
     list_no=statistics[0]["list_no"],
     term=Term.QUARTERLY, start_month="202403", end_month="202412",
@@ -233,14 +243,14 @@ FISIS 원본 응답의 값 열은 `a`·`b`·`c`·`d` 같은 무의미한 이름�
 행에 더해 열별 이름·단위(`Column`)와 결산일을 담은 `Data` 하나입니다.
 
 ```python
-table.rows                                   # [{'base_month': '202403', '말잔': ...}, ...]
-[(c.name, c.unit) for c in table.columns]    # 예: [('금액', '원'), ('구성비', '%')]
-table.date_of_settlement                     # 예: '12/31'
+data.rows                                   # [{'base_month': '202403', '말잔': ...}, ...]
+[(c.name, c.unit) for c in data.columns]    # 예: [('금액', '원'), ('구성비', '%')]
+data.date_of_settlement                     # 예: '12/31'
 
 # 행은 pandas·polars가 바로 먹는 records 형식입니다(값은 FISIS가 주는 대로 문자열 —
 # 필요한 열만 캐스팅하세요). 변환 헬퍼는 해당 라이브러리가 설치돼 있을 때 씁니다:
-table.to_polars()                            # polars.DataFrame
-table.to_pandas()                            # pandas.DataFrame
+data.to_polars()                            # polars.DataFrame
+data.to_pandas()                            # pandas.DataFrame
 ```
 
 ## 5. 커맨드라인

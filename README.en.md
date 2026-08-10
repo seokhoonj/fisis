@@ -84,7 +84,7 @@ from fisis import FISIS
 
 fisis = FISIS()                                     # finds your saved key
 sl = fisis.life.company("Samsung Life", lang="en")  # a company handle (or the code "0010595")
-table = sl.persistency(start_month="202312", end_month="202312")   # 13- & 25-month persistency
+data = sl.persistency(start_month="202312", end_month="202312")   # 13- & 25-month persistency
 ```
 
 The return is a `Data` — the values on `.rows` (a `list` of `dict`), per-column units on
@@ -92,15 +92,15 @@ The return is a `Data` — the values on `.rows` (a `list` of `dict`), per-colum
 one line away (pandas optional).
 
 ```python
-table.rows                    # [{'base_month': ..., '말잔': ...}, ...]
+data.rows                    # [{'base_month': ..., 'account_nm': '13회차 계약유지율', '비율': ...}, ...]
 
 # pandas / polars -- the converters, when the library is installed
-table.to_pandas()
-table.to_polars()
+data.to_pandas()
+data.to_polars()
 
 # or build it yourself
 import pandas as pd
-pd.DataFrame(table.rows)
+pd.DataFrame(data.rows)
 ```
 
 `sector`, `category`, `term` and `lang` accept the enum member, the vendor code (`"H"`,
@@ -119,28 +119,38 @@ FISIS()                                               # 5 sectors have named sta
 │   ├─ .capital_adequacy()                            # capital adequacy (BIS)
 │   ├─ .delinquency()  .npl_ratio()                   # delinquency · non-performing loans
 │   ├─ .deposits()  .loans()                          # deposits · loans
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # balance sheet (assets)
+│   ├─ .balance_sheet_liabilities()                   # balance sheet (liabilities & equity)
+│   ├─ .income_statement()                            # income
 │   └─ ...                                            # full metric list in the tables below
 ├─ life
 │   ├─ .solvency()                                    # solvency (RBC/K-ICS)
 │   ├─ .persistency()  .agent_retention()             # persistency · agent retention
 │   ├─ .new_business()  .premium_income()             # new business · premium income
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # balance sheet (assets)
+│   ├─ .balance_sheet_liabilities()                   # balance sheet (liabilities & equity)
+│   ├─ .income_statement()                            # income
 │   └─ ...
 ├─ nonlife
 │   ├─ .solvency()  .persistency()  .efficiency()     # solvency · persistency · efficiency
 │   ├─ .premium_income()  .retained_premium()         # premium income · retained premium (long-term/auto/general)
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # balance sheet (assets)
+│   ├─ .balance_sheet_liabilities()                   # balance sheet (liabilities & equity)
+│   ├─ .income_statement()                            # income
 │   └─ ...
 ├─ securities
 │   ├─ .net_capital_ratio()  .leverage()              # NCR · leverage
 │   ├─ .securities_trading()  .derivatives_trading()  # securities · derivatives trading
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # balance sheet (assets)
+│   ├─ .balance_sheet_liabilities()                   # balance sheet (liabilities & equity)
+│   ├─ .income_statement()                            # income
 │   └─ ...
 ├─ card
 │   ├─ .delinquency()                                 # delinquent receivables
 │   ├─ .credit_card_usage()  .purchase_volume()       # card usage · purchase volume
-│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
+│   ├─ .balance_sheet_assets()                        # balance sheet (assets)
+│   ├─ .balance_sheet_liabilities()                   # balance sheet (liabilities & equity)
+│   ├─ .income_statement()                            # income
 │   └─ ...
 │
 │  * every handle also has: .fetch(list_no=..., term=..., ...)  ->  Data(rows + units + settlement)
@@ -210,10 +220,10 @@ agent retention annual `Y`). Each returns a `Data` -- the values on `.rows`, per
 | `new_business` `in_force` `premium_income` | new business · in-force · premium income | SH160 · SH161 · SH166 (life) |
 | `premium_income` `retained_premium` | premium income (by collection form) · retained premium (long-term / auto / general) | SI027 · SI138 (nonlife) |
 
-Sector attribute names: `bank`, `foreign_bank`, `life`, `nonlife`, `securities`,
-`futures`, `asset_management`, `investment_advisory`, `merchant_bank`, `card`, `leasing`,
-`capital`, `new_tech`, `savings_bank`, `credit_union`, `nonghyup`, `suhyup`,
-`forestry_coop`, `real_estate_trust`, `holding`, `trust_common`, `derivatives_common`.
+Sector attributes — **the 5 with named statistics**: `bank` `life` `nonlife` `securities` `card`.
+**the 17 reached by code only**: `foreign_bank` `futures` `asset_management` `investment_advisory`
+`merchant_bank` `leasing` `capital` `new_tech` `savings_bank` `credit_union` `nonghyup`
+`suhyup` `forestry_coop` `real_estate_trust` `holding` `trust_common` `derivatives_common`.
 
 ## 4. Flat methods — the discovery flow
 
@@ -230,7 +240,7 @@ companies  = fisis.list_companies(sector=Sector.LIFE)                 # company 
 statistics = fisis.list_statistics(sector=Sector.LIFE)                # statistic -> list_no
 accounts   = fisis.list_accounts(list_no=statistics[0]["list_no"])    # account item -> account_cd
 
-table = fisis.fetch_data(                                             # observations (YYYYMM, max 40 quarters)
+data = fisis.fetch_data(                                              # observations (YYYYMM, max 40 quarters)
     finance_cd=companies[0]["finance_cd"],
     list_no=statistics[0]["list_no"],
     term=Term.QUARTERLY, start_month="202403", end_month="202412",
@@ -243,15 +253,15 @@ legend. It returns a single `Data` -- the rows plus the per-column name/unit (`C
 and the settlement date.
 
 ```python
-table.rows                                   # [{'base_month': '202403', '말잔': ...}, ...]
-[(c.name, c.unit) for c in table.columns]    # e.g. [('금액', '원'), ('구성비', '%')]
-table.date_of_settlement                     # e.g. '12/31'
+data.rows                                   # [{'base_month': '202403', '말잔': ...}, ...]
+[(c.name, c.unit) for c in data.columns]    # e.g. [('금액', '원'), ('구성비', '%')]
+data.date_of_settlement                     # e.g. '12/31'
 
 # The rows are the records format pandas / polars consume directly (values arrive as
 # strings, as FISIS sends them -- cast the columns you need). The converters are there
 # when the frame library is installed:
-table.to_polars()                            # polars.DataFrame
-table.to_pandas()                            # pandas.DataFrame
+data.to_polars()                            # polars.DataFrame
+data.to_pandas()                            # pandas.DataFrame
 ```
 
 ## 5. Command line

@@ -177,17 +177,17 @@ def _run_accounts(args: argparse.Namespace) -> int:
 def _run_data(args: argparse.Namespace) -> int:
     account_kw = {"account_cd": args.account_cd} if args.account_cd else {}
     with FISIS() as fisis:
-        table = fisis.fetch_data(
+        data = fisis.fetch_data(
             finance_cd=args.finance_cd, list_no=args.list_no, term=args.term,
             start_month=args.start, end_month=args.end, **account_kw, **_lang_kw(args))
     # One fetch always returns the full table; --table only decides how much of it
     # to show: the column/unit legend and settlement date, or just the rows.
     if args.table:
-        print(_table_to_json(table) if args.json
-              else _render_table(table, args.list_no))
+        print(_table_to_json(data) if args.json
+              else _render_table(data, args.list_no))
     else:
-        print(_to_json(table.rows) if args.json
-              else _render_data(table.rows, args.list_no))
+        print(_to_json(data.rows) if args.json
+              else _render_data(data.rows, args.list_no))
     return 0
 
 
@@ -201,13 +201,13 @@ def _to_json(rows: Sequence[Row]) -> str:
     return json.dumps(list(rows), ensure_ascii=False, indent=2)
 
 
-def _table_to_json(table: Data) -> str:
+def _table_to_json(data: Data) -> str:
     """A --table result as JSON: settlement date, column legend, and full rows."""
     payload = {
-        "date_of_settlement": table.date_of_settlement,
+        "date_of_settlement": data.date_of_settlement,
         "columns": [{"name": column.name, "unit": column.unit}
-                    for column in table.columns],
-        "rows": list(table.rows),
+                    for column in data.columns],
+        "rows": list(data.rows),
     }
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
@@ -224,24 +224,24 @@ def _render_data(rows: Sequence[Row], list_no: str) -> str:
     return f"{head}\n{_render_grid_auto(shown)}"
 
 
-def _render_table(table: Data, list_no: str) -> str:
+def _render_table(data: Data, list_no: str) -> str:
     """The --table view: a summary with settlement date, the column/unit legend,
     then the most recent observations as an aligned text grid."""
-    head = f"{list_no}  {len(table.rows)} obs"
-    if table.date_of_settlement:
-        head += f"  settlement {table.date_of_settlement}"
+    head = f"{list_no}  {len(data.rows)} obs"
+    if data.date_of_settlement:
+        head += f"  settlement {data.date_of_settlement}"
     legend = "  ".join(
         f"{column.name} ({column.unit})" if column.unit else column.name
-        for column in table.columns)
+        for column in data.columns)
     parts = [head]
     if legend:
         parts.append(f"columns: {legend}")
-    if not table.rows:
+    if not data.rows:
         parts.append("(no observations)")
     else:
-        if len(table.rows) > _MAX_DATA_ROWS:
+        if len(data.rows) > _MAX_DATA_ROWS:
             parts[0] += f"  (showing last {_MAX_DATA_ROWS}; use --json for all)"
-        parts.append(_render_grid_auto(table.rows[-_MAX_DATA_ROWS:]))
+        parts.append(_render_grid_auto(data.rows[-_MAX_DATA_ROWS:]))
     return "\n".join(parts)
 
 

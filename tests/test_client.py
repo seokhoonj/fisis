@@ -223,10 +223,10 @@ def test_fetch_data_account_cd_narrows():
 def test_fetch_data_empty_result_has_no_rows():
     payload = {"result": {"err_cd": "000", "err_msg": "정상", "total_count": "0"}}
     fisis = _client([payload])
-    table = fisis.fetch_data(finance_cd="0010001", list_no="SH002", term="Q",
+    data = fisis.fetch_data(finance_cd="0010001", list_no="SH002", term="Q",
                              start_month="202403", end_month="202412")
-    assert table.rows == []
-    assert table.columns == ()
+    assert data.rows == []
+    assert data.columns == ()
 
 
 def test_missing_result_wrapper_is_tolerated():
@@ -252,14 +252,14 @@ def test_fetch_data_returns_columns_units_settlement_and_builds_request():
         date_of_settlement="12/31",
     )
     fisis = _client([payload], recorded)
-    table = fisis.fetch_data(finance_cd="0010001", list_no="SH150", term="Q",
+    data = fisis.fetch_data(finance_cd="0010001", list_no="SH150", term="Q",
                              start_month="202403", end_month="202403")
 
-    assert isinstance(table, Data)
-    name_units = [(c.name, c.unit) for c in table.columns]
+    assert isinstance(data, Data)
+    name_units = [(c.name, c.unit) for c in data.columns]
     assert name_units == [("금액", "원"), ("구성비", "%")]
-    assert table.date_of_settlement == "12/31"
-    assert table.rows[0]["금액"] == "1000"  # rows carry the same resolved names
+    assert data.date_of_settlement == "12/31"
+    assert data.rows[0]["금액"] == "1000"  # rows carry the same resolved names
     url = recorded[0].url
     assert url.path == "/openapi/statisticsInfoSearch.json"
     assert url.params["financeCd"] == "0010001"
@@ -509,6 +509,13 @@ def test_enum_arg_rejects_unknown_with_valueerror():
     with pytest.raises(ValueError):
         fisis.fetch_data(finance_cd="0010001", list_no="SH002", term="weekly",
                          start_month="202403", end_month="202412")
+
+
+def test_to_enum_rejects_non_string_with_valueerror():
+    # A non-str, non-member value raises the documented ValueError, not a stray
+    # AttributeError from the member-name (.upper()) path.
+    with pytest.raises(ValueError):
+        _to_enum(Sector, 5)
 
 
 def test_english_language_sends_lang_en():

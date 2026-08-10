@@ -195,13 +195,13 @@ def test_fetch_delegates_with_finance_cd_and_carries_units():
         date_of_settlement="12/31",
     )
     fisis = _client([payload], recorded)
-    table = fisis.life.company("0010001").fetch(
+    data = fisis.life.company("0010001").fetch(
         list_no="SH150", term="Q", start_month="202403", end_month="202403")
 
-    assert isinstance(table, Data)
-    name_units = [(c.name, c.unit) for c in table.columns]
+    assert isinstance(data, Data)
+    name_units = [(c.name, c.unit) for c in data.columns]
     assert name_units == [("금액", "원"), ("구성비", "%")]
-    assert table.date_of_settlement == "12/31"
+    assert data.date_of_settlement == "12/31"
     assert recorded[0].url.params["financeCd"] == "0010001"
     assert recorded[0].url.params["listNo"] == "SH150"
 
