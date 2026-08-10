@@ -69,13 +69,15 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("life", "premium_income", "SH166", "Q"),
     ("life", "balance_sheet", "SH150", "Q"),
     ("life", "income_statement", "SH154", "Q"),
-    # NONLIFE (8)
+    # NONLIFE (10)
     ("nonlife", "solvency", "SI021", "Q"),
     ("nonlife", "asset_quality", "SI112", "Q"),
     ("nonlife", "liquidity", "SI115", "Q"),
     ("nonlife", "efficiency", "SI114", "Q"),
     ("nonlife", "persistency", "SI025", "H"),
     ("nonlife", "agent_retention", "SI022", "Y"),
+    ("nonlife", "premium_income", "SI027", "Q"),
+    ("nonlife", "retained_premium", "SI138", "Q"),
     ("nonlife", "balance_sheet", "SI146", "Q"),
     ("nonlife", "income_statement", "SI150", "Q"),
     # CARD (10)

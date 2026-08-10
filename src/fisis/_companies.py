@@ -298,6 +298,24 @@ class _NonlifeCompanyView(CompanyView):
             list_no="SI022", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
+    def premium_income(
+        self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
+        account_cd: str | None = None, lang: Lang | str = Lang.KO,
+    ) -> Data:
+        """보험료수입 - 수납형태별 (SI027)."""
+        return self.fetch(
+            list_no="SI027", term=term, start_month=start_month,
+            end_month=end_month, account_cd=account_cd, lang=lang)
+
+    def retained_premium(
+        self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
+        account_cd: str | None = None, lang: Lang | str = Lang.KO,
+    ) -> Data:
+        """보유보험료 - 보험종목별 (SI138; 장기·자동차·일반)."""
+        return self.fetch(
+            list_no="SI138", term=term, start_month=start_month,
+            end_month=end_month, account_cd=account_cd, lang=lang)
+
     def balance_sheet(
         self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
         account_cd: str | None = None, lang: Lang | str = Lang.KO,

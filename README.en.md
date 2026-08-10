@@ -23,7 +23,7 @@ regulator. Unlike **DART** (the electronic *disclosure* system), its value is th
 | Securities | net capital ratio (NCR), asset soundness, leverage |
 | Card | delinquent-receivable ratio, credit / debit / prepaid card usage |
 | Life insurance | solvency (RBC/K-ICS), 13- & 25-month persistency, management-efficiency ratios, new business · in-force · premium income |
-| Non-life insurance | solvency, persistency, management-efficiency ratios |
+| Non-life insurance | solvency, persistency, management-efficiency ratios, premium income · retained premium (long-term / auto / general) |
 
 **With DART** — financial statements are richer on DART (the disclosure system: notes, XBRL,
 consolidated / separate); fisis reads them on the same **supervisory separate** basis
@@ -37,7 +37,7 @@ rest are fisis-only. Cross-check the DART figures with [opendart-client](https:/
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
 | card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
-| life · nonlife | `solvency` (RBC/K-ICS) · `persistency` · `efficiency` · `premium_income` (life) | ❌ | ✅ |
+| life · nonlife | `solvency` (RBC/K-ICS) · `persistency` · `efficiency` · `premium_income` · `retained_premium` (nonlife) | ❌ | ✅ |
 
 Frequently-used figures are reached through an **accessor**
 (`fisis.life.company("Samsung Life", lang="en").persistency(start_month="202312",
@@ -129,6 +129,7 @@ FISIS()                                              # 5 sectors have named stat
 │   └─ ...
 ├─ nonlife
 │   ├─ .solvency()  .persistency()  .efficiency()   # solvency · persistency · efficiency
+│   ├─ .premium_income()  .retained_premium()       # premium income · retained premium (long-term/auto/general)
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 ├─ securities
@@ -206,6 +207,7 @@ agent retention annual `Y`). Each returns a `Data` -- the values on `.rows`, per
 | `balance_sheet` | summary balance sheet | SH150 / SI146 |
 | `income_statement` | summary income statement | SH154 / SI150 |
 | `new_business` `in_force` `premium_income` | new business · in-force · premium income | SH160 · SH161 · SH166 (life) |
+| `premium_income` `retained_premium` | premium income (by collection form) · retained premium (long-term / auto / general) | SI027 · SI138 (nonlife) |
 
 Sector attribute names: `bank`, `foreign_bank`, `life`, `nonlife`, `securities`,
 `futures`, `asset_management`, `investment_advisory`, `merchant_bank`, `card`, `leasing`,

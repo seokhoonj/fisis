@@ -20,7 +20,7 @@
 | 증권 | 영업용순자본비율(NCR), 자산건전성, 레버리지 |
 | 카드 | 연체채권비율, 신용·직불·선불 카드이용실적 |
 | 생명보험 | 지급여력비율(RBC/K-ICS), 13·25회 계약유지율, 경영효율지표, 신계약·보유계약·보험료수입 |
-| 손해보험 | 지급여력비율, 계약유지율, 경영효율지표 |
+| 손해보험 | 지급여력비율, 계약유지율, 경영효율지표, 보험료수입·보유보험료(장기·자동차·일반) |
 
 **DART와 함께** — 재무제표는 DART(전자공시)가 더 충실(주석·XBRL·연결/별도)하고, fisis는 같은
 **감독 별도** 기준으로 재무제표와 감독지표를 한 소스에서 봅니다. 재무제표성 지표만 DART와
@@ -32,7 +32,7 @@
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
 | card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
-| life · nonlife | `solvency` (RBC/K-ICS) · `persistency` · `efficiency` · `premium_income` (life) | ❌ | ✅ |
+| life · nonlife | `solvency` (RBC/K-ICS) · `persistency` · `efficiency` · `premium_income` · `retained_premium` (손보) | ❌ | ✅ |
 
 자주 쓰는 지표는 **접근자**(`fisis.life.company("삼성생명").persistency(start_month="202312",
 end_month="202312")`)로 바로 꺼내고, 그 밖의 통계는 통계표 코드로 조회합니다.
@@ -121,6 +121,7 @@ FISIS()                                              # 5개 권역은 이름 붙
 │   └─ ...
 ├─ nonlife
 │   ├─ .solvency()  .persistency()  .efficiency()   # 지급여력 · 유지율 · 경영효율
+│   ├─ .premium_income()  .retained_premium()       # 보험료수입 · 보유보험료(장기·자동차·일반)
 │   ├─ .balance_sheet()  .income_statement()
 │   └─ ...
 ├─ securities
@@ -197,6 +198,7 @@ FISIS()                                              # 5개 권역은 이름 붙
 | `balance_sheet` | 요약재무상태표 | SH150 / SI146 |
 | `income_statement` | 요약손익계산서 | SH154 / SI150 |
 | `new_business` `in_force` `premium_income` | 신계약·보유계약·보험료수입 | SH160 · SH161 · SH166 (생보) |
+| `premium_income` `retained_premium` | 보험료수입(수납형태)·보유보험료(장기·자동차·일반) | SI027 · SI138 (손보) |
 
 권역 속성 이름: `bank`, `foreign_bank`, `life`, `nonlife`, `securities`, `futures`,
 `asset_management`, `investment_advisory`, `merchant_bank`, `card`, `leasing`,
