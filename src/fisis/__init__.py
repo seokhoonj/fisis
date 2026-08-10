@@ -19,11 +19,11 @@ from .types import (
     Category,
     Column,
     CompanyRow,
+    Data,
     DataRow,
     Lang,
     Sector,
     StatisticsRow,
-    Table,
     Term,
 )
 
@@ -45,7 +45,7 @@ __all__ = [
     "AccountRow",
     "DataRow",
     "Column",
-    "Table",
+    "Data",
     "FISISError",
     "FISISConfigError",
     "FISISAuthError",

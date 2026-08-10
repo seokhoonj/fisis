@@ -12,6 +12,7 @@ import pytest
 from fisis import (
     FISIS,
     Category,
+    Data,
     FISISAuthError,
     FISISConfigError,
     FISISNetworkError,
@@ -19,7 +20,6 @@ from fisis import (
     FISISResponseError,
     Lang,
     Sector,
-    Table,
     Term,
 )
 from fisis.client import _to_enum
@@ -238,7 +238,7 @@ def test_missing_result_wrapper_is_tolerated():
     assert fisis.list_companies(sector="H") == [{"finance_cd": "0010001"}]
 
 
-# -- fetch_data returns the full Table (rows + per-column units + settlement) -
+# -- fetch_data returns the full Data (rows + per-column units + settlement) -
 
 
 def test_fetch_data_returns_columns_units_settlement_and_builds_request():
@@ -255,7 +255,7 @@ def test_fetch_data_returns_columns_units_settlement_and_builds_request():
     table = fisis.fetch_data(finance_cd="0010001", list_no="SH150", term="Q",
                              start_month="202403", end_month="202403")
 
-    assert isinstance(table, Table)
+    assert isinstance(table, Data)
     name_units = [(c.name, c.unit) for c in table.columns]
     assert name_units == [("금액", "원"), ("구성비", "%")]
     assert table.date_of_settlement == "12/31"

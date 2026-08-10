@@ -33,7 +33,7 @@ rest are fisis-only. Cross-check the DART figures with [opendart-client](https:/
 
 | group | indicator | dart | fisis |
 |---|---|---|---|
-| bank | `balance_sheet` · `income_statement` | ✅ | ✅ |
+| all 5 named sectors | `balance_sheet` · `income_statement` | ✅ | ✅ |
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
 | card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
@@ -46,9 +46,9 @@ end_month="202312")`); everything else by statistics code.
 ## 1. Install
 
 ```bash
-pip install fisis          # core (httpx only)
-pip install fisis[pandas]  # + Table.to_pandas()
-pip install fisis[polars]  # + Table.to_polars()
+pip install fisis          # core
+pip install fisis[pandas]  # + Data.to_pandas()
+pip install fisis[polars]  # + Data.to_polars()
 ```
 
 fisis needs a FISIS API key. Get one free at <https://fisis.fss.or.kr/> (a non-profit key
@@ -87,7 +87,7 @@ sl = fisis.life.company("Samsung Life", lang="en")  # a company handle (or the c
 table = sl.persistency(start_month="202312", end_month="202312")   # 13- & 25-month persistency
 ```
 
-The return is a `Table` — the values on `.rows` (a `list` of `dict`), per-column units on
+The return is a `Data` — the values on `.rows` (a `list` of `dict`), per-column units on
 `.columns`, the settlement date on `.date_of_settlement`. The rows are a table (DataFrame)
 one line away (pandas optional).
 
@@ -112,15 +112,40 @@ Sectors (`fisis.life`, `fisis.bank`, ...) are explicit attributes, so an editor 
 when you type `.`. Pick a company on a sector, then call a statistic on the company handle.
 
 ```text
-FISIS()
-├─ bank, securities, card, life, nonlife            # the 5 sectors with named statistics
-│   └─ .company("<name>" | "<code>")                # a company handle (CompanyView)
-│       ├─ .solvency(...) / .capital_adequacy(...)  # solvency / capital adequacy
-│       ├─ .persistency(...)                        # contract persistency (insurers)
-│       ├─ .delinquency(...)                        # delinquency (bank / card)
-│       └─ .fetch(list_no=..., term=..., ...)       # any statistic, by code (Table: rows+units+settlement)
-└─ (+17 sectors)                                    # foreign_bank, savings_bank, capital ...
-    └─ .company("<code>").fetch(...)                # by code, no named statistics
+FISIS()                                              # 5 sectors have named statistics; the other 17 are code-only
+│  each sector: .company("<name>" | "<code>") gives a company handle (CompanyView) whose statistics are named
+│
+├─ bank
+│   ├─ .capital_adequacy()                          # capital adequacy (BIS)
+│   ├─ .delinquency()  .npl_ratio()                 # delinquency · non-performing loans
+│   ├─ .deposits()  .loans()                        # deposits · loans
+│   ├─ .balance_sheet()  .income_statement()        # balance sheet (assets) · income
+│   └─ ...                                          # full metric list in the tables below
+├─ life
+│   ├─ .solvency()                                  # solvency (RBC/K-ICS)
+│   ├─ .persistency()  .agent_retention()           # persistency · agent retention
+│   ├─ .new_business()  .premium_income()           # new business · premium income
+│   ├─ .balance_sheet()  .income_statement()
+│   └─ ...
+├─ nonlife
+│   ├─ .solvency()  .persistency()  .efficiency()   # solvency · persistency · efficiency
+│   ├─ .balance_sheet()  .income_statement()
+│   └─ ...
+├─ securities
+│   ├─ .net_capital_ratio()  .leverage()            # NCR · leverage
+│   ├─ .securities_trading()  .derivatives_trading()  # securities · derivatives trading
+│   ├─ .balance_sheet()  .income_statement()
+│   └─ ...
+├─ card
+│   ├─ .delinquency()                               # delinquent receivables
+│   ├─ .credit_card_usage()  .purchase_volume()     # card usage · purchase volume
+│   ├─ .balance_sheet()  .income_statement()
+│   └─ ...
+│
+│  * every handle also has: .fetch(list_no=..., term=..., ...)  ->  Data(rows + units + settlement)
+│
+└─ (+17 sectors)                                     # foreign_bank · savings_bank · capital · futures ...
+    └─ .company("<code>").fetch(list_no=...)         # by code only, no named statistics
 ```
 
 `company(key)` takes an all-digit `key` as the `finance_cd` directly (no lookup);
@@ -132,7 +157,7 @@ English name, or use the numeric code, which is language-independent.
 
 Each statistic method takes `start_month` / `end_month` (YYYYMM); its `term` defaults to a
 value the statistic actually accepts (mostly quarterly `Q`; persistency half-yearly `H`;
-agent retention annual `Y`). Each returns a `Table` -- the values on `.rows`, per-column
+agent retention annual `Y`). Each returns a `Data` -- the values on `.rows`, per-column
 **units** on `.columns`, the **settlement date** on `.date_of_settlement`.
 
 ### Bank `fisis.bank`
@@ -157,6 +182,7 @@ agent retention annual `Y`). Each returns a `Table` -- the values on `.rows`, pe
 | `leverage` | leverage ratio | SF331 |
 | `asset_quality` `liquidity` `profitability` | asset soundness · liquidity · profitability | SF311 · SF209 · SF210 |
 | `securities_trading` `derivatives_trading` | securities · derivatives trading | SF316 · SF317 |
+| `balance_sheet` `income_statement` | balance sheet · income statement | SF303 · SF307 |
 
 ### Card `fisis.card`
 
@@ -165,6 +191,7 @@ agent retention annual `Y`). Each returns a `Table` -- the values on `.rows`, pe
 | `capital_adequacy` `asset_quality` `profitability` `liquidity` | capital adequacy · loan soundness · profitability · liquidity | SC007 · SC008 · SC009 · SC010 |
 | `delinquency` | delinquent-receivable ratio | SC117 |
 | `credit_card_usage` `debit_card_usage` `purchase_volume` | credit / debit card usage · purchase volume | SC013 · SC014 · SC016 |
+| `balance_sheet` `income_statement` | balance sheet · income statement | SC103 · SC218 |
 
 ### Life `fisis.life` / Non-life `fisis.nonlife`
 
@@ -209,7 +236,7 @@ table = fisis.fetch_data(                                             # observat
 
 FISIS ships each observation's value columns under opaque names (`a`, `b`, `c`, `d`);
 `fetch_data` resolves them to their human names (e.g. `말잔` / `평잔`) from the response
-legend. It returns a single `Table` -- the rows plus the per-column name/unit (`Column`)
+legend. It returns a single `Data` -- the rows plus the per-column name/unit (`Column`)
 and the settlement date.
 
 ```python
@@ -288,7 +315,7 @@ Claude Code picks it up immediately; Codex needs a restart to load it.
 | `FISISNetworkError` | The request never completed |
 
 - Every error derives from `FISISError`.
-- A query with no data returns an empty result, not an error (a catalog query an empty list; `fetch_data` and the statistic methods a `Table` with no rows).
+- A query with no data returns an empty result, not an error (a catalog query an empty list; `fetch_data` and the statistic methods a `Data` with no rows).
 - For heavy use, `FISIS(delay_seconds=0.3)` paces requests under the limit.
 - Error messages and representations never include the API key.
 

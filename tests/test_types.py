@@ -1,4 +1,4 @@
-"""Table.to_polars / to_pandas -- the lazy frame conversions, tested without the
+"""Data.to_polars / to_pandas -- the lazy frame conversions, tested without the
 frame libraries installed (the wiring is exercised by monkeypatching the import)."""
 
 from __future__ import annotations
@@ -7,9 +7,9 @@ import importlib
 
 import pytest
 
-from fisis.types import Column, Table
+from fisis.types import Column, Data
 
-_TABLE = Table(
+_DATA = Data(
     rows=[{"base_month": "202403", "말잔": "1000"},
           {"base_month": "202406", "말잔": "1100"}],
     columns=(Column("a", "말잔", "원"),),
@@ -31,16 +31,16 @@ class _RecordingBackend:
 
 def test_to_polars_passes_rows_to_dataframe(monkeypatch):
     monkeypatch.setattr(importlib, "import_module", lambda name: _RecordingBackend)
-    frame = _TABLE.to_polars()
+    frame = _DATA.to_polars()
     assert isinstance(frame, _FakeFrame)
-    assert frame.rows == _TABLE.rows  # the records list, not the Table itself
+    assert frame.rows == _DATA.rows  # the records list, not the Data itself
 
 
 def test_to_pandas_passes_rows_to_dataframe(monkeypatch):
     monkeypatch.setattr(importlib, "import_module", lambda name: _RecordingBackend)
-    frame = _TABLE.to_pandas()
+    frame = _DATA.to_pandas()
     assert isinstance(frame, _FakeFrame)
-    assert frame.rows == _TABLE.rows
+    assert frame.rows == _DATA.rows
 
 
 def test_conversion_without_the_library_raises_a_helpful_error(monkeypatch):
@@ -52,9 +52,9 @@ def test_conversion_without_the_library_raises_a_helpful_error(monkeypatch):
     # never installed polars / pandas is told the fix rather than seeing a bare
     # ModuleNotFoundError from deep in the method.
     with pytest.raises(ImportError, match="pip install polars"):
-        _TABLE.to_polars()
+        _DATA.to_polars()
     with pytest.raises(ImportError, match="pip install pandas"):
-        _TABLE.to_pandas()
+        _DATA.to_pandas()
 
 
 def test_conversion_reraises_when_a_backend_dependency_is_missing(monkeypatch):
@@ -65,4 +65,4 @@ def test_conversion_reraises_when_a_backend_dependency_is_missing(monkeypatch):
 
     monkeypatch.setattr(importlib, "import_module", _dependency_missing)
     with pytest.raises(ModuleNotFoundError, match="numpy"):
-        _TABLE.to_polars()
+        _DATA.to_polars()

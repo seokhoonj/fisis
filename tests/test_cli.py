@@ -8,7 +8,7 @@ import pytest
 
 from fisis import cli
 from fisis.exceptions import FISISConfigError, FISISResponseError
-from fisis.types import Column, Table
+from fisis.types import Column, Data
 
 
 class _FakeFISIS:
@@ -20,7 +20,7 @@ class _FakeFISIS:
     """
 
     rows: list[dict] = []
-    table: Table | None = None
+    table: Data | None = None
     error: Exception | None = None
     calls: list[tuple[str, dict]] = []
 
@@ -49,14 +49,14 @@ class _FakeFISIS:
         return self._run("list_accounts", **kwargs)
 
     def fetch_data(self, **kwargs):
-        # One fetch returns the full Table; a test sets `.table` for the legend
-        # cases, else the rows are wrapped in a column-less, settlement-less Table.
+        # One fetch returns the full Data; a test sets `.table` for the legend
+        # cases, else the rows are wrapped in a column-less, settlement-less Data.
         type(self).calls.append(("fetch_data", kwargs))
         if type(self).error is not None:
             raise type(self).error
         if type(self).table is not None:
             return type(self).table
-        return Table(rows=type(self).rows, columns=(), date_of_settlement=None)
+        return Data(rows=type(self).rows, columns=(), date_of_settlement=None)
 
 
 @pytest.fixture(autouse=True)
@@ -165,7 +165,7 @@ def test_data_account_cd_forwarded():
 
 
 def test_data_table_renders_legend_and_settlement(capsys):
-    _FakeFISIS.table = Table(
+    _FakeFISIS.table = Data(
         rows=[{"base_month": "202403", "금액": "1000", "구성비": "55.5"}],
         columns=(Column("a", "금액", "원"), Column("b", "구성비", "%")),
         date_of_settlement="12/31")
@@ -180,7 +180,7 @@ def test_data_table_renders_legend_and_settlement(capsys):
 
 
 def test_data_table_json_shape(capsys):
-    _FakeFISIS.table = Table(
+    _FakeFISIS.table = Data(
         rows=[{"base_month": "202403", "금액": "1000"}],
         columns=(Column("a", "금액", "원"),),
         date_of_settlement="12/31")

@@ -29,7 +29,7 @@ classifiers = [
 dependencies = ["httpx>=0.27"]
 
 [project.optional-dependencies]
-# Frame converters are optional: Table.to_pandas / to_polars import their backend
+# Frame converters are optional: Data.to_pandas / to_polars import their backend
 # lazily, so the core install stays httpx-only. `pip install fisis[pandas]` /
 # `fisis[polars]` pulls the one you want.
 pandas = ["pandas"]
@@ -62,7 +62,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.11"
 strict = true
 
-# polars / pandas are optional (imported lazily by Table.to_polars / to_pandas);
+# polars / pandas are optional (imported lazily by Data.to_polars / to_pandas);
 # they need not be installed to type-check this package, so their absent stubs are
 # not an error here. A caller who uses the converters has the library installed,
 # and their own checker then resolves the real DataFrame type from the annotations.

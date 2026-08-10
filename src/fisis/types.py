@@ -2,7 +2,7 @@
 
 Rows come back as plain dicts (``TypedDict``) so a caller can turn them into a
 DataFrame in one line -- ``pd.DataFrame(rows)`` -- without this package importing
-pandas at import time (the :class:`Table` converters import it lazily, only when
+pandas at import time (the :class:`Data` converters import it lazily, only when
 called). Each row type is ``total=False`` because the response parser
 passes through *every* key the vendor sends, so a field new to the API still
 arrives in the dict even before it is declared here. FISIS already keys its JSON
@@ -167,7 +167,7 @@ def _optional_import(module_name: str) -> ModuleType:
     """Import a conversion backend on demand, or raise a helpful ImportError.
 
     ``polars`` / ``pandas`` are not dependencies of this package -- its only one
-    is httpx -- so :meth:`Table.to_polars` / :meth:`Table.to_pandas` import them
+    is httpx -- so :meth:`Data.to_polars` / :meth:`Data.to_pandas` import them
     here, at call time. Only the requested module being absent yields the install
     hint; if the backend is installed but one of *its own* dependencies is
     missing, that real cause is re-raised rather than mislabelled "not installed".
@@ -179,12 +179,12 @@ def _optional_import(module_name: str) -> ModuleType:
             raise  # a dependency of the backend is missing -- surface the real cause
         raise ImportError(
             f"{module_name} is not installed; run `pip install {module_name}` to "
-            f"use this method, or build a frame yourself from Table.rows."
+            f"use this method, or build a frame yourself from Data.rows."
         ) from err
 
 
 @dataclass(slots=True)
-class Table:
+class Data:
     """One statisticsInfoSearch result: resolved rows plus their column legend.
 
     ``rows`` are the value-column-resolved dicts, one per observation (see

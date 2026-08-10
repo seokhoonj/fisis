@@ -78,7 +78,7 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("nonlife", "agent_retention", "SI022", "Y"),
     ("nonlife", "balance_sheet", "SI146", "Q"),
     ("nonlife", "income_statement", "SI150", "Q"),
-    # CARD (8)
+    # CARD (10)
     ("card", "capital_adequacy", "SC007", "Q"),
     ("card", "asset_quality", "SC008", "Q"),
     ("card", "profitability", "SC009", "Q"),
@@ -87,7 +87,9 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("card", "credit_card_usage", "SC013", "Q"),
     ("card", "debit_card_usage", "SC014", "Q"),
     ("card", "purchase_volume", "SC016", "Q"),
-    # SECURITIES (7)
+    ("card", "balance_sheet", "SC103", "Q"),
+    ("card", "income_statement", "SC218", "Q"),
+    # SECURITIES (9)
     ("securities", "net_capital_ratio", "SF308", "Q"),
     ("securities", "leverage", "SF331", "Q"),
     ("securities", "asset_quality", "SF311", "Q"),
@@ -95,6 +97,8 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("securities", "profitability", "SF210", "Q"),
     ("securities", "securities_trading", "SF316", "Q"),
     ("securities", "derivatives_trading", "SF317", "Q"),
+    ("securities", "balance_sheet", "SF303", "Q"),
+    ("securities", "income_statement", "SF307", "Q"),
 ]
 
 # The 5 sectors with a named-statistic subclass, and the 17 that stay base views.
@@ -113,15 +117,25 @@ _PLAIN_SECTORS: list[str] = [
 ]
 
 
-def test_named_method_table_covers_every_shipped_method():
-    # Guards the table: its length must equal the total shipped named methods
-    # (bank 11 + life 11 + nonlife 8 + card 8 + securities 7 = 45).
-    assert len(_NAMED_METHODS) == 45
-    counts = {sector: 0 for sector, _ in _SPECIAL_SECTORS}
-    for sector, *_ in _NAMED_METHODS:
-        counts[sector] += 1
-    assert counts == {"bank": 11, "life": 11, "nonlife": 8, "card": 8,
-                      "securities": 7}
+def _named_methods_on(view_cls: type[CompanyView]) -> set[str]:
+    """The statistic-accessor names a sector view class defines *itself*.
+
+    Only the subclass's own ``vars`` -- its named-statistic methods -- not the
+    ``CompanyView`` machinery it inherits (``fetch``, ``company``, ...).
+    """
+    return {name for name, member in vars(view_cls).items()
+            if not name.startswith("_") and callable(member)}
+
+
+def test_named_method_table_matches_every_view_class_exactly():
+    # The real guard: for each sector the (method) set in _NAMED_METHODS must equal
+    # the methods that view class actually defines. A method shipped on a class but
+    # forgotten in the table -- or a table row with no method -- fails here instead
+    # of passing silently (a bare len()/count check cannot see either).
+    for sector_attr, view_cls in _SPECIAL_SECTORS:
+        tabled = {method for sector, method, *_ in _NAMED_METHODS
+                  if sector == sector_attr}
+        assert _named_methods_on(view_cls) == tabled, sector_attr
 
 
 # -- every named method builds the right statisticsInfoSearch request ---------

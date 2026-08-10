@@ -22,10 +22,10 @@ from .types import (
     AccountRow,
     Category,
     CompanyRow,
+    Data,
     Lang,
     Sector,
     StatisticsRow,
-    Table,
     Term,
 )
 
@@ -60,7 +60,7 @@ class _ClientProtocol(Protocol):
         self, *, finance_cd: str, list_no: str, term: Term | str,
         start_month: str, end_month: str, account_cd: str | None = ...,
         lang: Lang | str = ...,
-    ) -> Table: ...
+    ) -> Data: ...
 
 
 class SectorView(Generic[_C]):
@@ -209,10 +209,10 @@ class CompanyView:
         end_month: str,
         account_cd: str | None = None,
         lang: Lang | str = Lang.KO,
-    ) -> Table:
+    ) -> Data:
         """Fetch this company's observations (delegates to ``fetch_data``).
 
-        Returns a :class:`Table` -- ``table.rows`` for the values, ``table.columns``
+        Returns a :class:`Data` -- ``table.rows`` for the values, ``table.columns``
         for each value column's unit, ``table.date_of_settlement`` for the fiscal
         date. See :meth:`FISIS.fetch_data`.
         """

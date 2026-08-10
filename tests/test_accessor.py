@@ -7,7 +7,7 @@ from typing import Any
 import httpx
 import pytest
 
-from fisis import FISIS, Category, CompanyView, Sector, SectorView, Table
+from fisis import FISIS, Category, CompanyView, Data, Sector, SectorView
 
 
 def _success(rows: list[dict[str, Any]], **extra: Any) -> dict[str, Any]:
@@ -198,7 +198,7 @@ def test_fetch_delegates_with_finance_cd_and_carries_units():
     table = fisis.life.company("0010001").fetch(
         list_no="SH150", term="Q", start_month="202403", end_month="202403")
 
-    assert isinstance(table, Table)
+    assert isinstance(table, Data)
     name_units = [(c.name, c.unit) for c in table.columns]
     assert name_units == [("금액", "원"), ("구성비", "%")]
     assert table.date_of_settlement == "12/31"

@@ -28,7 +28,7 @@
 
 | group | indicator | dart | fisis |
 |---|---|---|---|
-| bank | `balance_sheet` · `income_statement` | ✅ | ✅ |
+| 이름 붙은 5개 권역 | `balance_sheet` · `income_statement` | ✅ | ✅ |
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
 | card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
@@ -40,9 +40,9 @@ end_month="202312")`)로 바로 꺼내고, 그 밖의 통계는 통계표 코드
 ## 1. 설치
 
 ```bash
-pip install fisis          # 코어 (의존성은 httpx 하나)
-pip install fisis[pandas]  # + Table.to_pandas()
-pip install fisis[polars]  # + Table.to_polars()
+pip install fisis          # 코어
+pip install fisis[pandas]  # + Data.to_pandas()
+pip install fisis[polars]  # + Data.to_polars()
 ```
 
 이 패키지는 FISIS API 키가 필요합니다. <https://fisis.fss.or.kr/> 의 오픈API 신청에서
@@ -80,7 +80,7 @@ sl = fisis.life.company("삼성생명")  # 회사 손잡이 (코드 "0010595" �
 table = sl.persistency(start_month="202312", end_month="202312")   # 13·25회 계약유지율
 ```
 
-반환은 `Table` — 값은 `.rows`(`dict`의 목록), 열별 단위는 `.columns`, 결산일은
+반환은 `Data` — 값은 `.rows`(`dict`의 목록), 열별 단위는 `.columns`, 결산일은
 `.date_of_settlement`. 행은 표(DataFrame)로 한 줄에 바뀝니다(pandas는 필수가 아닙니다).
 
 ```python
@@ -104,15 +104,40 @@ pd.DataFrame(table.rows)
 자동완성됩니다. 권역에서 회사를 고르고, 회사 손잡이에서 지표를 부릅니다.
 
 ```text
-FISIS()
-├─ bank, securities, card, life, nonlife            # 이름 붙은 지표가 있는 5개 권역
-│   └─ .company("<name>" | "<code>")                # 회사 손잡이 (CompanyView)
-│       ├─ .solvency(...) / .capital_adequacy(...)  # 지급여력 · 자본적정성
-│       ├─ .persistency(...)                        # 계약유지율 (보험)
-│       ├─ .delinquency(...)                        # 연체율 · 연체채권 (은행 · 카드)
-│       └─ .fetch(list_no=..., term=..., ...)       # 통계표 코드로 직접 (Table: 행+단위+결산일)
-└─ (+17 sectors)                                    # foreign_bank, savings_bank, capital ...
-    └─ .company("<code>").fetch(...)                # 이름 붙은 지표 없이 코드로
+FISIS()                                              # 5개 권역은 이름 붙은 지표, 나머지 17개는 코드로만
+│  각 권역: .company("<이름>" | "<코드>") 로 회사 손잡이(CompanyView)를 얻어 지표를 이름으로 호출
+│
+├─ bank
+│   ├─ .capital_adequacy()                          # 자본적정성 (BIS)
+│   ├─ .delinquency()  .npl_ratio()                 # 연체율 · 고정이하여신
+│   ├─ .deposits()  .loans()                        # 예수금 · 대출금
+│   ├─ .balance_sheet()  .income_statement()        # 재무상태표(자산) · 손익
+│   └─ ...                                          # 전체 지표는 아래 권역별 표
+├─ life
+│   ├─ .solvency()                                  # 지급여력 (RBC/K-ICS)
+│   ├─ .persistency()  .agent_retention()           # 계약유지율 · 설계사정착률
+│   ├─ .new_business()  .premium_income()           # 신계약 · 보험료수입
+│   ├─ .balance_sheet()  .income_statement()
+│   └─ ...
+├─ nonlife
+│   ├─ .solvency()  .persistency()  .efficiency()   # 지급여력 · 유지율 · 경영효율
+│   ├─ .balance_sheet()  .income_statement()
+│   └─ ...
+├─ securities
+│   ├─ .net_capital_ratio()  .leverage()            # NCR · 레버리지
+│   ├─ .securities_trading()  .derivatives_trading()  # 증권 · 파생 거래현황
+│   ├─ .balance_sheet()  .income_statement()
+│   └─ ...
+├─ card
+│   ├─ .delinquency()                               # 연체채권
+│   ├─ .credit_card_usage()  .purchase_volume()     # 카드이용 · 구매실적
+│   ├─ .balance_sheet()  .income_statement()
+│   └─ ...
+│
+│  * 모든 손잡이 공통: .fetch(list_no=..., term=..., ...)  ->  Data(행 + 단위 + 결산일)
+│
+└─ (+17 sectors)                                     # foreign_bank · savings_bank · capital · futures ...
+    └─ .company("<코드>").fetch(list_no=...)         # 이름 붙은 지표 없이 코드로만
 ```
 
 `company(key)`는 `key`가 전부 숫자면 그것을 `finance_cd`로 바로 쓰고(조회 없음), 아니면
@@ -123,7 +148,7 @@ FISIS()
 
 각 지표 메서드는 `start_month`·`end_month`(YYYYMM)를 받고, `term`은 그 지표가 실제로
 받는 값을 기본값으로 둡니다(대부분 분기 `Q`, 유지율은 반기 `H`, 정착률은 연간 `Y`).
-반환값은 `Table` 하나입니다 — 값은 `.rows`, 열별 **단위**는 `.columns`, **결산일**은
+반환값은 `Data` 하나입니다 — 값은 `.rows`, 열별 **단위**는 `.columns`, **결산일**은
 `.date_of_settlement`에 담겨 옵니다.
 
 ### 은행 `fisis.bank`
@@ -148,6 +173,7 @@ FISIS()
 | `leverage` | 레버리지 비율 | SF331 |
 | `asset_quality` `liquidity` `profitability` | 자산건전성·유동성·수익성 | SF311 · SF209 · SF210 |
 | `securities_trading` `derivatives_trading` | 증권·파생상품 거래현황 | SF316 · SF317 |
+| `balance_sheet` `income_statement` | 재무상태표·손익 | SF303 · SF307 |
 
 ### 신용카드 `fisis.card`
 
@@ -156,6 +182,7 @@ FISIS()
 | `capital_adequacy` `asset_quality` `profitability` `liquidity` | 자본적정성·여신건전성·수익성·유동성 | SC007 · SC008 · SC009 · SC010 |
 | `delinquency` | 연체채권비율 | SC117 |
 | `credit_card_usage` `debit_card_usage` `purchase_volume` | 신용·직불 카드이용실적·구매실적 | SC013 · SC014 · SC016 |
+| `balance_sheet` `income_statement` | 재무상태표·손익 | SC103 · SC218 |
 
 ### 생명보험 `fisis.life` / 손해보험 `fisis.nonlife`
 
@@ -200,7 +227,7 @@ table = fisis.fetch_data(                                             # 통계�
 
 FISIS 원본 응답의 값 열은 `a`·`b`·`c`·`d` 같은 무의미한 이름이지만, `fetch_data`가 응답의
 컬럼 설명으로 자동 해석해 사람이 읽는 이름(예: `말잔`·`평잔`)으로 돌려줍니다. 반환값은
-행에 더해 열별 이름·단위(`Column`)와 결산일을 담은 `Table` 하나입니다.
+행에 더해 열별 이름·단위(`Column`)와 결산일을 담은 `Data` 하나입니다.
 
 ```python
 table.rows                                   # [{'base_month': '202403', '말잔': ...}, ...]
@@ -277,7 +304,7 @@ Claude Code는 바로 인식하고, Codex는 재시작해야 로딩됩니다.
 | `FISISNetworkError` | 네트워크가 끝내 안 됐을 때 |
 
 - 모든 예외는 `FISISError`의 하위입니다.
-- 조회 결과가 없으면 에러가 아니라 빈 결과로 옵니다 (카탈로그 조회는 빈 목록, `fetch_data`·지표 메서드는 행이 빈 `Table`).
+- 조회 결과가 없으면 에러가 아니라 빈 결과로 옵니다 (카탈로그 조회는 빈 목록, `fetch_data`·지표 메서드는 행이 빈 `Data`).
 - 여러 회사·통계표를 잇달아 읽을 때는 `FISIS(delay_seconds=0.3)`으로 간격을 둡니다.
 - 에러 메시지와 표현에는 API 키가 절대 담기지 않습니다.
 

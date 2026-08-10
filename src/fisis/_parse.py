@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import Any, cast
 
 from .exceptions import FISISResponseError
-from .types import Column, DataRow, Table
+from .types import Column, Data, DataRow
 
 # The identifying fields of a statisticsInfoSearch row. Never renamed, even if a
 # legend entry happened to reuse one of these as a column_id.
@@ -49,15 +49,15 @@ def data_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def make_table(result: dict[str, Any]) -> Table:
-    """Build a :class:`Table` from a statisticsInfoSearch ``result``.
+def make_data(result: dict[str, Any]) -> Data:
+    """Build a :class:`Data` from a statisticsInfoSearch ``result``.
 
     ``rows`` reuse :func:`data_rows` (value columns resolved to their names);
     ``columns`` pair each value column with its unit (see :func:`_columns`);
     ``date_of_settlement`` passes through, ``None`` when absent or non-string.
     """
     settlement = result.get("date_of_settlement")
-    return Table(
+    return Data(
         rows=cast("list[DataRow]", data_rows(result)),
         columns=_columns(result.get("description"), result.get("unit")),
         date_of_settlement=settlement if isinstance(settlement, str) else None,
@@ -109,7 +109,7 @@ def _columns(description: Any, unit: Any) -> tuple[Column, ...]:
     columns (``"원,%"`` -> 원, %); a single-column table gives one token
     (``"%"``). If the token count does not match the column count, every unit is
     ``None`` -- the alignment is unknowable, so it is not guessed. Returned as a
-    tuple so the legend on a frozen ``Table`` is honestly immutable.
+    tuple so the legend on a frozen ``Data`` is honestly immutable.
     """
     entries = _legend_entries(description)
     units = _split_units(unit, len(entries))

@@ -31,7 +31,7 @@ from typing import TypeAlias
 from . import __version__
 from .client import FISIS
 from .exceptions import FISISError
-from .types import Table
+from .types import Data
 
 # How many rows the text view of `data` prints; the full result is always in --json.
 _MAX_DATA_ROWS = 40
@@ -201,7 +201,7 @@ def _to_json(rows: Sequence[Row]) -> str:
     return json.dumps(list(rows), ensure_ascii=False, indent=2)
 
 
-def _table_to_json(table: Table) -> str:
+def _table_to_json(table: Data) -> str:
     """A --table result as JSON: settlement date, column legend, and full rows."""
     payload = {
         "date_of_settlement": table.date_of_settlement,
@@ -224,7 +224,7 @@ def _render_data(rows: Sequence[Row], list_no: str) -> str:
     return f"{head}\n{_render_grid_auto(shown)}"
 
 
-def _render_table(table: Table, list_no: str) -> str:
+def _render_table(table: Data, list_no: str) -> str:
     """The --table view: a summary with settlement date, the column/unit legend,
     then the most recent observations as an aligned text grid."""
     head = f"{list_no}  {len(table.rows)} obs"

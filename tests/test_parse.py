@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from fisis import Column, FISISResponseError
-from fisis._parse import data_rows, list_rows, make_table
+from fisis._parse import data_rows, list_rows, make_data
 
 # -- list_rows ---------------------------------------------------------------
 
@@ -86,10 +86,10 @@ def test_data_rows_never_renames_identifying_fields():
     assert "기준월" not in rows[0]
 
 
-# -- make_table (rows + column/unit legend + settlement) ---------------------
+# -- make_data (rows + column/unit legend + settlement) ---------------------
 
 
-def test_make_table_pairs_names_with_units_positionally():
+def test_make_data_pairs_names_with_units_positionally():
     result = {
         "description": [{"column_id": "a", "column_nm": "금액"},
                         {"column_id": "b", "column_nm": "구성비"}],
@@ -98,53 +98,53 @@ def test_make_table_pairs_names_with_units_positionally():
         "list": [{"base_month": "202403", "finance_cd": "0010001",
                   "account_cd": "A", "account_nm": "자산", "a": "1000", "b": "55.5"}],
     }
-    table = make_table(result)
+    table = make_data(result)
     assert table.columns == (Column("a", "금액", "원"), Column("b", "구성비", "%"))
     assert table.date_of_settlement == "12/31"
     assert table.rows[0]["금액"] == "1000"
     assert table.rows[0]["구성비"] == "55.5"
 
 
-def test_make_table_single_column_single_unit():
+def test_make_data_single_column_single_unit():
     result = {
         "description": [{"column_id": "a", "column_nm": "영업이익률"}],
         "unit": "%",
         "list": [{"base_month": "202212", "finance_cd": "0010597",
                   "account_cd": "A", "account_nm": "영업이익률", "a": "2.65"}],
     }
-    table = make_table(result)
+    table = make_data(result)
     assert table.columns == (Column("a", "영업이익률", "%"),)
     assert table.date_of_settlement is None  # absent -- passes through as None
 
 
-def test_make_table_unit_count_mismatch_sets_every_unit_none():
+def test_make_data_unit_count_mismatch_sets_every_unit_none():
     result = {
         "description": [{"column_id": "a", "column_nm": "금액"},
                         {"column_id": "b", "column_nm": "구성비"}],
         "unit": "원",  # one token for two columns -- alignment is unknowable
         "list": [{"base_month": "202403", "a": "1000", "b": "55.5"}],
     }
-    table = make_table(result)
+    table = make_data(result)
     assert [column.name for column in table.columns] == ["금액", "구성비"]
     assert all(column.unit is None for column in table.columns)
 
 
-def test_make_table_missing_unit_sets_unit_none():
+def test_make_data_missing_unit_sets_unit_none():
     result = {
         "description": [{"column_id": "a", "column_nm": "금액"}],
         "list": [{"base_month": "202403", "a": "1000"}],
     }
-    assert make_table(result).columns == (Column("a", "금액", None),)
+    assert make_data(result).columns == (Column("a", "금액", None),)
 
 
-def test_make_table_wrapped_description_still_resolves_columns():
+def test_make_data_wrapped_description_still_resolves_columns():
     # Defensive: the {"column": [...]} fallback also produces the unit-paired legend.
     result = {
         "description": {"column": [{"column_id": "a", "column_nm": "금액"}]},
         "unit": "원",
         "list": [{"base_month": "202403", "a": "1000"}],
     }
-    assert make_table(result).columns == (Column("a", "금액", "원"),)
+    assert make_data(result).columns == (Column("a", "금액", "원"),)
 
 
 def _two_column_result(unit: str) -> dict:
@@ -156,16 +156,16 @@ def _two_column_result(unit: str) -> dict:
     }
 
 
-def test_make_table_strips_whitespace_around_unit_tokens():
+def test_make_data_strips_whitespace_around_unit_tokens():
     # A "원, %" with a space after the comma must yield stripped units.
-    columns = make_table(_two_column_result("원, %")).columns
+    columns = make_data(_two_column_result("원, %")).columns
     assert [(column.name, column.unit) for column in columns] == [
         ("금액", "원"), ("구성비", "%")]
 
 
-def test_make_table_empty_unit_token_becomes_none():
+def test_make_data_empty_unit_token_becomes_none():
     # "원," aligns token-wise with two columns; the empty second token is None,
     # not an empty string.
-    columns = make_table(_two_column_result("원,")).columns
+    columns = make_data(_two_column_result("원,")).columns
     assert [(column.name, column.unit) for column in columns] == [
         ("금액", "원"), ("구성비", None)]

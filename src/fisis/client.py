@@ -3,7 +3,7 @@
 One object holds the API key and a pooled HTTP connection; its methods mirror the
 FISIS operations one-to-one, each taking named arguments. The catalog methods
 (``list_*``) return a list of dict rows; :meth:`FISIS.fetch_data` returns a
-:class:`~fisis.types.Table`. Which operation URL a method calls, and the vendor's
+:class:`~fisis.types.Data`. Which operation URL a method calls, and the vendor's
 parameter spelling
 (``partDiv``, ``lrgDiv``, ``startBaseMm``), stay in this module and never surface
 to the caller.
@@ -32,10 +32,10 @@ from .types import (
     AccountRow,
     Category,
     CompanyRow,
+    Data,
     Lang,
     Sector,
     StatisticsRow,
-    Table,
     Term,
 )
 
@@ -88,11 +88,11 @@ class FISIS:
     codes step by step -- :meth:`list_companies` for a sector's companies,
     :meth:`list_statistics` for its statistics catalog, :meth:`list_accounts` for
     one statistic's account items -- then pull the numbers with
-    :meth:`fetch_data`, which returns a :class:`Table` (the observation rows plus
+    :meth:`fetch_data`, which returns a :class:`Data` (the observation rows plus
     their column/unit legend). The ``list_*`` methods return a list of plain
-    dicts, one per row, and a :class:`Table`'s ``rows`` is that same records
+    dicts, one per row, and a :class:`Data`'s ``rows`` is that same records
     format -- ready for ``pd.DataFrame(rows)`` without this package importing
-    pandas (or :meth:`Table.to_pandas` / :meth:`Table.to_polars`).
+    pandas (or :meth:`Data.to_pandas` / :meth:`Data.to_polars`).
 
     The client owns a pooled HTTP connection, so reuse one instance across calls
     and close it when done -- as a context manager, or via :meth:`close`. Set
@@ -109,7 +109,7 @@ class FISIS:
     more than 40 quarters), and :class:`FISISNetworkError` if the request never
     completes (a transient timeout, 5xx, or FISIS-internal error 900 is retried
     with backoff first). A catalog query that matches no data returns an empty
-    list; :meth:`fetch_data` returns a :class:`Table` with no rows. A bad argument
+    list; :meth:`fetch_data` returns a :class:`Data` with no rows. A bad argument
     raises the standard ``ValueError`` -- an
     unrecognized ``sector`` / ``category`` / ``term`` / ``lang`` string.
     """
@@ -253,14 +253,14 @@ class FISIS:
         end_month: str,
         account_cd: str | None = None,
         lang: Lang | str = Lang.KO,
-    ) -> Table:
+    ) -> Data:
         """Fetch a statistic's observations (operation statisticsInfoSearch).
 
-        Returns a :class:`Table` -- the observation ``rows`` plus the value-column
+        Returns a :class:`Data` -- the observation ``rows`` plus the value-column
         legend (each column's human name and unit) and the fiscal
         ``date_of_settlement``. The rows are the common case (``table.rows`` is
         the records list ``pd.DataFrame`` / ``pl.DataFrame`` consume, or
-        :meth:`Table.to_pandas` / :meth:`Table.to_polars`); the legend is there
+        :meth:`Data.to_pandas` / :meth:`Data.to_polars`); the legend is there
         for when the numbers are meaningless without their units (a table mixing
         ``"원"`` and ``"%"`` columns).
 
@@ -288,7 +288,7 @@ class FISIS:
         if account_cd is not None:
             params["accountCd"] = account_cd
         params["lang"] = str(_to_enum(Lang, lang))
-        return _parse.make_table(self._collect(_URL_DATA, params))
+        return _parse.make_data(self._collect(_URL_DATA, params))
 
     # -- internals ---------------------------------------------------------
 
