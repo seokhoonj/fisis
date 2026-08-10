@@ -33,7 +33,7 @@ rest are fisis-only. Cross-check the DART figures with [opendart-client](https:/
 
 | group | indicator | dart | fisis |
 |---|---|---|---|
-| common | `balance_sheet` · `income_statement` | ✅ | ✅ |
+| common | `balance_sheet_assets` · `balance_sheet_liabilities` · `income_statement` | ✅ | ✅ |
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
 | card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
@@ -119,28 +119,28 @@ FISIS()                                               # 5 sectors have named sta
 │   ├─ .capital_adequacy()                            # capital adequacy (BIS)
 │   ├─ .delinquency()  .npl_ratio()                   # delinquency · non-performing loans
 │   ├─ .deposits()  .loans()                          # deposits · loans
-│   ├─ .balance_sheet()  .income_statement()          # balance sheet (assets) · income
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...                                            # full metric list in the tables below
 ├─ life
 │   ├─ .solvency()                                    # solvency (RBC/K-ICS)
 │   ├─ .persistency()  .agent_retention()             # persistency · agent retention
 │   ├─ .new_business()  .premium_income()             # new business · premium income
-│   ├─ .balance_sheet()  .income_statement()
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...
 ├─ nonlife
 │   ├─ .solvency()  .persistency()  .efficiency()     # solvency · persistency · efficiency
 │   ├─ .premium_income()  .retained_premium()         # premium income · retained premium (long-term/auto/general)
-│   ├─ .balance_sheet()  .income_statement()
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...
 ├─ securities
 │   ├─ .net_capital_ratio()  .leverage()              # NCR · leverage
 │   ├─ .securities_trading()  .derivatives_trading()  # securities · derivatives trading
-│   ├─ .balance_sheet()  .income_statement()
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...
 ├─ card
 │   ├─ .delinquency()                                 # delinquent receivables
 │   ├─ .credit_card_usage()  .purchase_volume()       # card usage · purchase volume
-│   ├─ .balance_sheet()  .income_statement()
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...
 │
 │  * every handle also has: .fetch(list_no=..., term=..., ...)  ->  Data(rows + units + settlement)
@@ -173,7 +173,7 @@ agent retention annual `Y`). Each returns a `Data` -- the values on `.rows`, per
 | `delinquency` | delinquency ratio | SA040 |
 | `npl_ratio` | substandard-and-below loans | SA041 |
 | `deposits` `loans` | deposits · loans | SA028 · SA043 |
-| `balance_sheet` `income_statement` | balance sheet · income statement | SA003 · SA021 |
+| `balance_sheet_assets` `balance_sheet_liabilities` `income_statement` | balance sheet (assets / liabilities & equity) · income | SA003 · SA004 · SA021 |
 
 ### Securities `fisis.securities`
 
@@ -183,7 +183,7 @@ agent retention annual `Y`). Each returns a `Data` -- the values on `.rows`, per
 | `leverage` | leverage ratio | SF331 |
 | `asset_quality` `liquidity` `profitability` | asset soundness · liquidity · profitability | SF311 · SF209 · SF210 |
 | `securities_trading` `derivatives_trading` | securities · derivatives trading | SF316 · SF317 |
-| `balance_sheet` `income_statement` | balance sheet · income statement | SF303 · SF307 |
+| `balance_sheet_assets` `balance_sheet_liabilities` `income_statement` | balance sheet (assets / liabilities & equity) · income | SF303 · SF304 · SF307 |
 
 ### Card `fisis.card`
 
@@ -192,7 +192,7 @@ agent retention annual `Y`). Each returns a `Data` -- the values on `.rows`, per
 | `capital_adequacy` `asset_quality` `profitability` `liquidity` | capital adequacy · loan soundness · profitability · liquidity | SC007 · SC008 · SC009 · SC010 |
 | `delinquency` | delinquent-receivable ratio | SC117 |
 | `credit_card_usage` `debit_card_usage` `purchase_volume` | credit / debit card usage · purchase volume | SC013 · SC014 · SC016 |
-| `balance_sheet` `income_statement` | balance sheet · income statement | SC103 · SC218 |
+| `balance_sheet_assets` `balance_sheet_liabilities` `income_statement` | balance sheet (assets / liabilities & equity) · income | SC103 · SC104 · SC218 |
 
 ### Life `fisis.life` / Non-life `fisis.nonlife`
 
@@ -204,7 +204,8 @@ agent retention annual `Y`). Each returns a `Data` -- the values on `.rows`, per
 | `agent_retention` | agent retention rate | SH022 / SI022 |
 | `asset_quality` | asset soundness | SH112 / SI112 |
 | `liquidity` | liquidity | SH115 / SI115 |
-| `balance_sheet` | summary balance sheet | SH150 / SI146 |
+| `balance_sheet_assets` | summary balance sheet (assets) | SH150 / SI146 |
+| `balance_sheet_liabilities` | summary balance sheet (liabilities & equity) | SH151 / SI147 |
 | `income_statement` | summary income statement | SH154 / SI150 |
 | `new_business` `in_force` `premium_income` | new business · in-force · premium income | SH160 · SH161 · SH166 (life) |
 | `premium_income` `retained_premium` | premium income (by collection form) · retained premium (long-term / auto / general) | SI027 · SI138 (nonlife) |

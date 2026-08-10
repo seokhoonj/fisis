@@ -111,13 +111,22 @@ class _BankCompanyView(CompanyView):
             list_no="SA043", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
-    def balance_sheet(
+    def balance_sheet_assets(
         self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
         account_cd: str | None = None, lang: Lang | str = Lang.KO,
     ) -> Data:
         """재무상태표 - 자산 (SA003; 부채·자본 SA004)."""
         return self.fetch(
             list_no="SA003", term=term, start_month=start_month,
+            end_month=end_month, account_cd=account_cd, lang=lang)
+
+    def balance_sheet_liabilities(
+        self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
+        account_cd: str | None = None, lang: Lang | str = Lang.KO,
+    ) -> Data:
+        """재무상태표 - 부채·자본 (SA004; 자산은 SA003)."""
+        return self.fetch(
+            list_no="SA004", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
     def income_statement(
@@ -218,13 +227,22 @@ class _LifeCompanyView(CompanyView):
             list_no="SH166", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
-    def balance_sheet(
+    def balance_sheet_assets(
         self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
         account_cd: str | None = None, lang: Lang | str = Lang.KO,
     ) -> Data:
         """재무상태표 - 자산 (SH150; 부채·자본 SH151; 2023.3 이후)."""
         return self.fetch(
             list_no="SH150", term=term, start_month=start_month,
+            end_month=end_month, account_cd=account_cd, lang=lang)
+
+    def balance_sheet_liabilities(
+        self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
+        account_cd: str | None = None, lang: Lang | str = Lang.KO,
+    ) -> Data:
+        """재무상태표 - 부채·자본 (SH151; 자산은 SH150; 2023.3 이후)."""
+        return self.fetch(
+            list_no="SH151", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
     def income_statement(
@@ -316,13 +334,22 @@ class _NonlifeCompanyView(CompanyView):
             list_no="SI138", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
-    def balance_sheet(
+    def balance_sheet_assets(
         self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
         account_cd: str | None = None, lang: Lang | str = Lang.KO,
     ) -> Data:
         """재무상태표 - 자산 (SI146; 부채·자본 SI147; 2023.3 이후)."""
         return self.fetch(
             list_no="SI146", term=term, start_month=start_month,
+            end_month=end_month, account_cd=account_cd, lang=lang)
+
+    def balance_sheet_liabilities(
+        self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
+        account_cd: str | None = None, lang: Lang | str = Lang.KO,
+    ) -> Data:
+        """재무상태표 - 부채·자본 (SI147; 자산은 SI146; 2023.3 이후)."""
+        return self.fetch(
+            list_no="SI147", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
     def income_statement(
@@ -414,13 +441,22 @@ class _CardCompanyView(CompanyView):
             list_no="SC016", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
-    def balance_sheet(
+    def balance_sheet_assets(
         self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
         account_cd: str | None = None, lang: Lang | str = Lang.KO,
     ) -> Data:
         """재무상태표 - 자산 (SC103; 부채·자본 SC104; 2008.3 이후)."""
         return self.fetch(
             list_no="SC103", term=term, start_month=start_month,
+            end_month=end_month, account_cd=account_cd, lang=lang)
+
+    def balance_sheet_liabilities(
+        self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
+        account_cd: str | None = None, lang: Lang | str = Lang.KO,
+    ) -> Data:
+        """재무상태표 - 부채·자본 (SC104; 자산은 SC103; 2008.3 이후)."""
+        return self.fetch(
+            list_no="SC104", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
     def income_statement(
@@ -503,13 +539,22 @@ class _SecuritiesCompanyView(CompanyView):
             list_no="SF317", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
-    def balance_sheet(
+    def balance_sheet_assets(
         self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
         account_cd: str | None = None, lang: Lang | str = Lang.KO,
     ) -> Data:
         """재무상태표 - 자산 (SF303; 부채·자본 SF304; 2011.6 이후)."""
         return self.fetch(
             list_no="SF303", term=term, start_month=start_month,
+            end_month=end_month, account_cd=account_cd, lang=lang)
+
+    def balance_sheet_liabilities(
+        self, *, start_month: str, end_month: str, term: Term | str = Term.QUARTERLY,
+        account_cd: str | None = None, lang: Lang | str = Lang.KO,
+    ) -> Data:
+        """재무상태표 - 부채·자본 (SF304; 자산은 SF303; 2011.6 이후)."""
+        return self.fetch(
+            list_no="SF304", term=term, start_month=start_month,
             end_month=end_month, account_cd=account_cd, lang=lang)
 
     def income_statement(

@@ -45,7 +45,7 @@ def _client(
 # accepts another (bank productivity Y; the insurers' persistency H and
 # agent_retention Y), matching the live-verified defaults in the source.
 _NAMED_METHODS: list[tuple[str, str, str, str]] = [
-    # BANK (11)
+    # BANK (12)
     ("bank", "capital_adequacy", "SA014", "Q"),
     ("bank", "asset_quality", "SA015", "Q"),
     ("bank", "profitability", "SA017", "Q"),
@@ -55,9 +55,10 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("bank", "npl_ratio", "SA041", "Q"),
     ("bank", "deposits", "SA028", "Q"),
     ("bank", "loans", "SA043", "Q"),
-    ("bank", "balance_sheet", "SA003", "Q"),
+    ("bank", "balance_sheet_assets", "SA003", "Q"),
+    ("bank", "balance_sheet_liabilities", "SA004", "Q"),
     ("bank", "income_statement", "SA021", "Q"),
-    # LIFE (11)
+    # LIFE (12)
     ("life", "solvency", "SH021", "Q"),
     ("life", "asset_quality", "SH112", "Q"),
     ("life", "liquidity", "SH115", "Q"),
@@ -67,9 +68,10 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("life", "new_business", "SH160", "Q"),
     ("life", "in_force", "SH161", "Q"),
     ("life", "premium_income", "SH166", "Q"),
-    ("life", "balance_sheet", "SH150", "Q"),
+    ("life", "balance_sheet_assets", "SH150", "Q"),
+    ("life", "balance_sheet_liabilities", "SH151", "Q"),
     ("life", "income_statement", "SH154", "Q"),
-    # NONLIFE (10)
+    # NONLIFE (11)
     ("nonlife", "solvency", "SI021", "Q"),
     ("nonlife", "asset_quality", "SI112", "Q"),
     ("nonlife", "liquidity", "SI115", "Q"),
@@ -78,9 +80,10 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("nonlife", "agent_retention", "SI022", "Y"),
     ("nonlife", "premium_income", "SI027", "Q"),
     ("nonlife", "retained_premium", "SI138", "Q"),
-    ("nonlife", "balance_sheet", "SI146", "Q"),
+    ("nonlife", "balance_sheet_assets", "SI146", "Q"),
+    ("nonlife", "balance_sheet_liabilities", "SI147", "Q"),
     ("nonlife", "income_statement", "SI150", "Q"),
-    # CARD (10)
+    # CARD (11)
     ("card", "capital_adequacy", "SC007", "Q"),
     ("card", "asset_quality", "SC008", "Q"),
     ("card", "profitability", "SC009", "Q"),
@@ -89,9 +92,10 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("card", "credit_card_usage", "SC013", "Q"),
     ("card", "debit_card_usage", "SC014", "Q"),
     ("card", "purchase_volume", "SC016", "Q"),
-    ("card", "balance_sheet", "SC103", "Q"),
+    ("card", "balance_sheet_assets", "SC103", "Q"),
+    ("card", "balance_sheet_liabilities", "SC104", "Q"),
     ("card", "income_statement", "SC218", "Q"),
-    # SECURITIES (9)
+    # SECURITIES (10)
     ("securities", "net_capital_ratio", "SF308", "Q"),
     ("securities", "leverage", "SF331", "Q"),
     ("securities", "asset_quality", "SF311", "Q"),
@@ -99,7 +103,8 @@ _NAMED_METHODS: list[tuple[str, str, str, str]] = [
     ("securities", "profitability", "SF210", "Q"),
     ("securities", "securities_trading", "SF316", "Q"),
     ("securities", "derivatives_trading", "SF317", "Q"),
-    ("securities", "balance_sheet", "SF303", "Q"),
+    ("securities", "balance_sheet_assets", "SF303", "Q"),
+    ("securities", "balance_sheet_liabilities", "SF304", "Q"),
     ("securities", "income_statement", "SF307", "Q"),
 ]
 
@@ -223,7 +228,7 @@ def test_name_match_yields_subclass_and_named_method_fires(
 def test_named_method_term_can_be_overridden():
     recorded: list[httpx.Request] = []
     fisis = _client([_success([])], recorded)
-    fisis.life.company("0010595").balance_sheet(
+    fisis.life.company("0010595").balance_sheet_assets(
         start_month="202312", end_month="202312", term="Y")
     assert recorded[0].url.params["term"] == "Y"  # caller override wins
 

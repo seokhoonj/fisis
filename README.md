@@ -28,7 +28,7 @@
 
 | group | indicator | dart | fisis |
 |---|---|---|---|
-| 공통 | `balance_sheet` · `income_statement` | ✅ | ✅ |
+| 공통 | `balance_sheet_assets` · `balance_sheet_liabilities` · `income_statement` | ✅ | ✅ |
 | bank | `capital_adequacy` · `delinquency` · `npl_ratio` · `productivity` | ❌ | ✅ |
 | securities | `net_capital_ratio` · `leverage` | ❌ | ✅ |
 | card | `delinquency` · `credit_card_usage` · `purchase_volume` | ❌ | ✅ |
@@ -111,28 +111,28 @@ FISIS()                                               # 5개 권역은 이름 �
 │   ├─ .capital_adequacy()                            # 자본적정성 (BIS)
 │   ├─ .delinquency()  .npl_ratio()                   # 연체율 · 고정이하여신
 │   ├─ .deposits()  .loans()                          # 예수금 · 대출금
-│   ├─ .balance_sheet()  .income_statement()          # 재무상태표(자산) · 손익
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...                                            # 전체 지표는 아래 권역별 표
 ├─ life
 │   ├─ .solvency()                                    # 지급여력 (RBC/K-ICS)
 │   ├─ .persistency()  .agent_retention()             # 계약유지율 · 설계사정착률
 │   ├─ .new_business()  .premium_income()             # 신계약 · 보험료수입
-│   ├─ .balance_sheet()  .income_statement()
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...
 ├─ nonlife
 │   ├─ .solvency()  .persistency()  .efficiency()     # 지급여력 · 유지율 · 경영효율
 │   ├─ .premium_income()  .retained_premium()         # 보험료수입 · 보유보험료(장기·자동차·일반)
-│   ├─ .balance_sheet()  .income_statement()
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...
 ├─ securities
 │   ├─ .net_capital_ratio()  .leverage()              # NCR · 레버리지
 │   ├─ .securities_trading()  .derivatives_trading()  # 증권 · 파생 거래현황
-│   ├─ .balance_sheet()  .income_statement()
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...
 ├─ card
 │   ├─ .delinquency()                                 # 연체채권
 │   ├─ .credit_card_usage()  .purchase_volume()       # 카드이용 · 구매실적
-│   ├─ .balance_sheet()  .income_statement()
+│   ├─ .balance_sheet_assets()  .balance_sheet_liabilities()  .income_statement()
 │   └─ ...
 │
 │  * 모든 회사 공통: .fetch(list_no=..., term=..., ...)  ->  Data(행 + 단위 + 결산일)
@@ -164,7 +164,7 @@ FISIS()                                               # 5개 권역은 이름 �
 | `delinquency` | 연체율 | SA040 |
 | `npl_ratio` | 고정이하여신 | SA041 |
 | `deposits` `loans` | 예수금·대출금 | SA028 · SA043 |
-| `balance_sheet` `income_statement` | 재무상태표·손익 | SA003 · SA021 |
+| `balance_sheet_assets` `balance_sheet_liabilities` `income_statement` | 재무상태표(자산 / 부채·자본)·손익 | SA003 · SA004 · SA021 |
 
 ### 증권 `fisis.securities`
 
@@ -174,7 +174,7 @@ FISIS()                                               # 5개 권역은 이름 �
 | `leverage` | 레버리지 비율 | SF331 |
 | `asset_quality` `liquidity` `profitability` | 자산건전성·유동성·수익성 | SF311 · SF209 · SF210 |
 | `securities_trading` `derivatives_trading` | 증권·파생상품 거래현황 | SF316 · SF317 |
-| `balance_sheet` `income_statement` | 재무상태표·손익 | SF303 · SF307 |
+| `balance_sheet_assets` `balance_sheet_liabilities` `income_statement` | 재무상태표(자산 / 부채·자본)·손익 | SF303 · SF304 · SF307 |
 
 ### 신용카드 `fisis.card`
 
@@ -183,7 +183,7 @@ FISIS()                                               # 5개 권역은 이름 �
 | `capital_adequacy` `asset_quality` `profitability` `liquidity` | 자본적정성·여신건전성·수익성·유동성 | SC007 · SC008 · SC009 · SC010 |
 | `delinquency` | 연체채권비율 | SC117 |
 | `credit_card_usage` `debit_card_usage` `purchase_volume` | 신용·직불 카드이용실적·구매실적 | SC013 · SC014 · SC016 |
-| `balance_sheet` `income_statement` | 재무상태표·손익 | SC103 · SC218 |
+| `balance_sheet_assets` `balance_sheet_liabilities` `income_statement` | 재무상태표(자산 / 부채·자본)·손익 | SC103 · SC104 · SC218 |
 
 ### 생명보험 `fisis.life` / 손해보험 `fisis.nonlife`
 
@@ -195,7 +195,8 @@ FISIS()                                               # 5개 권역은 이름 �
 | `agent_retention` | 설계사정착률 | SH022 / SI022 |
 | `asset_quality` | 자산건전성 | SH112 / SI112 |
 | `liquidity` | 유동성 | SH115 / SI115 |
-| `balance_sheet` | 요약재무상태표 | SH150 / SI146 |
+| `balance_sheet_assets` | 요약재무상태표 (자산) | SH150 / SI146 |
+| `balance_sheet_liabilities` | 요약재무상태표 (부채·자본) | SH151 / SI147 |
 | `income_statement` | 요약손익계산서 | SH154 / SI150 |
 | `new_business` `in_force` `premium_income` | 신계약·보유계약·보험료수입 | SH160 · SH161 · SH166 (생보) |
 | `premium_income` `retained_premium` | 보험료수입(수납형태)·보유보험료(장기·자동차·일반) | SI027 · SI138 (손보) |
