@@ -22,6 +22,7 @@ class FISISConfigError(FISISError):
 
     The usual cause is a missing API key -- neither passed to ``FISIS(...)`` nor
     present in the ``FISIS_API_KEY`` environment variable nor the credentials file.
+    Also raised when the credential store is present but unreadable or malformed.
     """
 
 

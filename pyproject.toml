@@ -7,7 +7,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fisis"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python client for the FISIS (Financial Supervisory Service Financial Statistics Information System) Open API"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -29,11 +29,11 @@ classifiers = [
     "Topic :: Office/Business :: Financial",
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
-dependencies = ["httpx>=0.27"]
+dependencies = ["credbox>=0.4", "httpx>=0.27"]
 
 [project.optional-dependencies]
 # Frame converters are optional: Data.to_pandas / to_polars import their backend
-# lazily, so the core install stays httpx-only. `pip install fisis[pandas]` /
+# lazily, so the core install stays limited to credbox + httpx. `pip install fisis[pandas]` /
 # `fisis[polars]` pulls the one you want.
 pandas = ["pandas"]
 polars = ["polars"]

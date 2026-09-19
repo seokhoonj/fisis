@@ -321,7 +321,7 @@ Claude Code picks it up immediately; Codex needs a restart to load it.
 
 | Error | When |
 |---|---|
-| `FISISConfigError` | No usable API key was found |
+| `FISISConfigError` | No usable API key was found, or the credential store could not be read |
 | `FISISAuthError` | FISIS rejected the key (unregistered / suspended / deleted / sample) |
 | `FISISRateLimitError` | Daily search quota exceeded (err 020) or HTTP 429 |
 | `FISISResponseError` | FISIS returned another error (`.code` · `.message`, e.g. 103 = span over 40 quarters) |

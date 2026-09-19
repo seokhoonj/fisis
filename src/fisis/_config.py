@@ -8,56 +8,63 @@ environment variable beats a file on disk:
 3. ``"FISIS_API_KEY"`` in ``$XDG_CONFIG_HOME/fisis/credentials.json``
    (``$XDG_CONFIG_HOME`` defaults to ``~/.config``)
 
-The file is optional -- its absence just means "no key here." But a file that is
-present and unreadable, not JSON, or not a JSON object is an error, because a caller
-who wrote one meant it to be used and a silent skip would hide the mistake.
+The resolution, the permission handling (a group/other-readable file is warned about,
+not refused), and the storage backend are delegated to credbox. The store binding is not
+hardcoded: ``Credentials.for_app("fisis")`` lets a host embedding fisis redirect it via
+``FISIS_STORE_APP`` / ``FISIS_NAMESPACE``; standalone it is exactly the flat
+``~/.config/fisis/credentials.json`` fisis has always read. A file that is present but
+unreadable, not JSON, or not a JSON object is still an error rather than a silent skip.
 """
 
 from __future__ import annotations
 
-import json
 import os
+from functools import lru_cache
 from pathlib import Path
+
+from credbox import CredBoxError, Credentials
 
 from .exceptions import FISISConfigError
 
 _ENV_VAR = "FISIS_API_KEY"
-_CONFIG_DIR = "fisis"
+_STORE_APP = "fisis"
 _CONFIG_FILE = "credentials.json"
 
 
 def resolve_api_key(explicit: str | None) -> str:
     """Return the first key found across the three sources, or raise if none exists."""
-    key = explicit or os.environ.get(_ENV_VAR) or _key_from_file()
-    if not key:
+    try:
+        found = _get_credentials().secret(_ENV_VAR, override=explicit)
+    except CredBoxError as err:
+        # credbox's message already names the store path + fault; don't prepend
+        # credentials_path() (wrong under a FISIS_STORE_APP redirect).
+        raise FISISConfigError(f"could not read the credential store: {err}") from err
+    if found is None:
+        # Binding validated cleanly above (None, not error), so store_location() is
+        # safe and gives the real store (the host's under a redirect).
         raise FISISConfigError(
             f"no FISIS API key: pass api_key=, set the {_ENV_VAR} environment "
-            f"variable, or put it in {credentials_path()}"
+            f"variable, or put it in {_get_credentials().store_location()}"
         )
-    return key
+    return found.reveal()
 
 
 def credentials_path() -> Path:
-    """The path fisis reads a stored key from (honoring ``$XDG_CONFIG_HOME``)."""
+    """The standalone/default path fisis reads a stored key from (honoring
+    ``$XDG_CONFIG_HOME``); not redirect-aware. Under a ``FISIS_STORE_APP`` redirect the
+    real store differs -- ``_get_credentials().store_location()`` reports it."""
     config_home = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
-    return Path(config_home) / _CONFIG_DIR / _CONFIG_FILE
+    return Path(config_home) / _STORE_APP / _CONFIG_FILE
 
 
-def _key_from_file() -> str | None:
-    path = credentials_path()
-    try:
-        text = path.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        return None
-    except OSError as err:
-        raise FISISConfigError(f"could not read {path}: {err}") from err
+@lru_cache(maxsize=1)
+def _get_credentials() -> Credentials:
+    """fisis's credbox credential store, built on first use and cached.
 
-    try:
-        credentials = json.loads(text)
-    except json.JSONDecodeError as err:
-        raise FISISConfigError(f"{path} is not valid JSON: {err}") from err
-    if not isinstance(credentials, dict):
-        raise FISISConfigError(f"{path} must contain a JSON object")
-
-    key = credentials.get(_ENV_VAR)
-    return key if isinstance(key, str) and key else None
+    Built via ``for_app`` (not the bare ``Credentials(...)``) so a host embedding fisis
+    can redirect the binding with ``FISIS_STORE_APP`` / ``FISIS_NAMESPACE`` before the
+    first lookup. credbox re-resolves the store *path* per call (honouring a later
+    ``XDG_CONFIG_HOME``); the binding is read from the environment once, when this
+    facade is built, and a malformed one surfaces as ``FISISConfigError`` on first use.
+    """
+    return Credentials.for_app(_STORE_APP)

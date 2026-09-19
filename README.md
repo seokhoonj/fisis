@@ -310,7 +310,7 @@ Claude Code는 바로 인식하고, Codex는 재시작해야 로딩됩니다.
 
 | 예외 | 언제 |
 |---|---|
-| `FISISConfigError` | API 키를 찾지 못했을 때 |
+| `FISISConfigError` | API 키를 찾지 못했거나, 자격증명 저장소를 읽거나 해석할 수 없을 때 |
 | `FISISAuthError` | FISIS가 키를 거부했을 때 (미등록·중지·삭제·샘플 키) |
 | `FISISRateLimitError` | 일일검색 허용횟수 초과(err 020) 또는 HTTP 429 |
 | `FISISResponseError` | FISIS가 에러를 돌려줬을 때 (`.code`·`.message`, 예: 40분기 초과 = 103) |
